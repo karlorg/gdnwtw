@@ -256,6 +256,13 @@ export default class extends Phaser.State {
     }
 
     updateKid(kid) {
+	switch (kid.state) {
+	case "skipping":
+	    this.kidSkip(kid);
+	}
+    }
+
+    kidSkip(kid) {
 	if (Math.abs(kid.destX - kid.x) < 2 && Math.abs(kid.destY - kid.y) < 2) {
 	    kid.destX = kid.homeX + game.rnd.between(-48, 48);
 	    kid.destY = kid.homeY + game.rnd.between(-48, 48);
@@ -270,8 +277,18 @@ export default class extends Phaser.State {
 	} else {
 	    kid.sprite.animations.play("skip right");
 	}
+
 	kid.sprite.x = kid.x;
 	kid.sprite.y = kid.y;
+
+	if (Phaser.Rectangle.intersects(kid.sprite, this.world.sprite)) {
+	    this.kidGetBonked(kid);
+	}
+    }
+
+    kidGetBonked(kid) {
+	kid.state = "bonked";
+	kid.sprite.animations.play("fall");
     }
 
     getTileIndices(map, property, value=true) {
