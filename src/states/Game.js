@@ -98,6 +98,7 @@ export default class extends Phaser.State {
 	    destX: x, destY: y,
 	    speed: 0.7,
 	    runSpeed: playerWalkSpeed * 1.3,
+	    aggroRange: worldPreferredOrbit * 1.3,
 	    updateFunc: this.updateGuard,
 	    sprite
  	};
@@ -309,11 +310,41 @@ export default class extends Phaser.State {
 	switch (guard.state) {
 	case "idle":
 	    this.walkAround(guard);
+	    this.checkAggro(guard);
+	    this.checkBonk(guard);
+	    break;
+	case "aggro":
+	    this.updateAggro(guard);
 	    this.checkBonk(guard);
 	    break;
 	}
 	guard.sprite.x = guard.x;
 	guard.sprite.y = guard.y;
+    }
+
+    checkAggro(guard) {
+	const dist = Math.sqrt(
+	    (guard.homeX - this.player.x) * (guard.homeX - this.player.x) +
+		(guard.homeY - this.player.y) * (guard.homeY - this.player.y)
+	);
+	if (dist < guard.aggroRange) {
+	    guard.state = "aggro";
+	}
+    }
+
+    updateAggro(guard) {
+	const dist = Math.sqrt(
+	    (guard.homeX - this.player.x) * (guard.homeX - this.player.x) +
+		(guard.homeY - this.player.y) * (guard.homeY - this.player.y)
+	);
+	if (dist > guard.aggroRange) {
+	    guard.state = "idle";
+	    return;
+	}
+	
+	const angle = Math.atan2(this.player.y - guard.y, this.player.x - guard.x);
+	guard.x += guard.runSpeed * Math.cos(angle);
+	guard.y += guard.runSpeed * Math.sin(angle);
     }
 
     checkBonk(npc) {
