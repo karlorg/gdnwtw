@@ -226,14 +226,19 @@ export default class extends Phaser.State {
 		(newX - this.world.x) * (newX - this.world.x) +
 		    (newY - this.world.y) * (newY - this.world.y)
 	    );
+	    let drag = 0;
+	    if (dist > worldPreferredOrbit) {
+		drag = (dist - worldPreferredOrbit) / (0.4 * worldPreferredOrbit);
+		if (drag > 1) { drag = 1; }
+	    }
 	    let attempt = 0;
 	    while (attempt < 2) {
 		let newNewX = this.world.x;
 		let newNewY = this.world.y;
 		if (attempt === 0) {
-	            newNewY = newY + speedOfTravel * 0.6 * Math.sin(angleOfTravel);
+	            newNewY += speedOfTravel * 0.6 * (1-drag) * Math.sin(angleOfTravel);
 		} else {
-	            newNewX = newX + speedOfTravel * 0.6 * Math.cos(angleOfTravel);
+	            newNewX += speedOfTravel * 0.6 * (1-drag) * Math.cos(angleOfTravel);
 		}
 	        let okToMove = true;
 	        for (const {x, y} of offsets) {
