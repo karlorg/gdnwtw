@@ -3,8 +3,8 @@ import Phaser from 'phaser';
 
 import level1jsonMap from '../../assets/level1.json';
 
-const playerWidth = 16;
-const playerHeight = 16;
+const playerWidth = 32;
+const playerHeight = 32;
 const playerWalkSpeed = 1.5;
 
 export default class extends Phaser.State {
@@ -16,10 +16,12 @@ export default class extends Phaser.State {
 
 	this.tilemap = this.game.add.tilemap('level1');
 	this.tilemap.addTilesetImage('overworld', 'overworld');
-	let layer = this.tilemap.createLayer('Ground');
-	layer.resizeWorld();
+	this.groundLayer = this.tilemap.createLayer('Ground');
+	this.groundLayer.resizeWorld();
+	this.obstacleLayer = this.tilemap.createLayer('Obstacles');
 	this.createEntitiesFromJsonMap(level1jsonMap);
 	this.walkableIndices = this.getTileIndices(this.tilemap, 'walkable');
+	this.blockingIndices = this.getTileIndices(this.tilemap, 'blocks');
 
 	this.camera.follow(this.player.sprite);
     }
@@ -95,16 +97,31 @@ export default class extends Phaser.State {
 	    newY += playerWalkSpeed;
 	}
 
-	const newTileIndex = this.tilemap.getTileWorldXY(newX, newY).index;
-	if (this.walkableIndices.indexOf(newTileIndex) >= 0) {
+	const offsets = [{x: 0.3, y: 0.35},
+			 {x: 0.7, y: 0.35},
+			 {x: 0.3, y: 0.9},
+			 {x: 0.7, y: 0.9}];
+	let okToMove = true;
+	for (const {x, y} of offsets) {
+	    okToMove = okToMove && this.isPosnBlocked(newX + x * playerWidth,
+						      newY + y * playerHeight);
+	}
+	if (okToMove) {
 	    this.player.x = newX;
 	    this.player.y = newY;
-	} else {
 	}
-
     }
 
-    getTileIndices(map, property, value='true') {
+    isPosnBlocked(x, y) {
+	const groundIndex = this.tilemap.getTileWorldXY(
+	    x, y, undefined, undefined, "Ground", true).index;
+	const obstaclesIndex = this.tilemap.getTileWorldXY(
+	    x, y, undefined, undefined, "Obstacles", true).index;
+	return (this.walkableIndices.indexOf(groundIndex) >= 0
+	        && this.blockingIndices.indexOf(obstaclesIndex) < 0);
+    }
+
+    getTileIndices(map, property, value=true) {
 	let result = [];
 	for (const tileset of map.tilesets) {
             if (!(tileset.hasOwnProperty("tileProperties"))) {
