@@ -65,18 +65,40 @@ export default class extends Phaser.State {
 	const sprite = this.game.add.sprite(
  	    x, y, 'kid', 1
 	);
-	sprite.animations.add('skip right', [0, 1], 2, true);
-	sprite.animations.add('skip left', [2, 3], 2, true);
+	sprite.animations.add('walk right', [0, 1], 2, true);
+	sprite.animations.add('walk left', [2, 3], 2, true);
 	sprite.animations.add('talk', [10, 11], 2, true);
-	sprite.animations.add('fall', [4, 5], 1, false);
+	sprite.animations.add('fall right', [4, 5], 1, false);
+	sprite.animations.add('fall left', [4, 5], 1, false);
 
 	return {
 	    x, y,
-	    state: "skipping",
+	    state: "idle",
 	    homeX: x, homeY: y,
 	    destX: x, destY: y,
 	    speed: 0.7,
 	    updateFunc: this.updateKid,
+	    sprite
+ 	};
+    }
+
+    makeGuard ({x, y}) {
+	const sprite = this.game.add.sprite(
+ 	    x, y, 'guard', 1
+	);
+	sprite.animations.add('walk left', [0], 2, true);
+	sprite.animations.add('walk right', [10], 2, true);
+	sprite.animations.add('fall left', [20, 21], 2, true);
+	sprite.animations.add('fall right', [30, 31], 1, false);
+
+	return {
+	    x, y,
+	    state: "idle",
+	    homeX: x, homeY: y,
+	    destX: x, destY: y,
+	    speed: 0.7,
+	    runSpeed: playerWalkSpeed * 1.3,
+	    updateFunc: this.updateGuard,
 	    sprite
  	};
     }
@@ -105,6 +127,11 @@ export default class extends Phaser.State {
 	const kids = this.getObjectsFromJsonMap(jsonMap, {type: 'kid'});
 	for (const kid of kids) {
 	    this.npcs.push(this.makeKid(kid));
+	}
+
+	const guards = this.getObjectsFromJsonMap(jsonMap, {type: 'guard'});
+	for (const guard of guards) {
+	    this.npcs.push(this.makeGuard(guard));
 	}
     }
 
@@ -262,38 +289,59 @@ export default class extends Phaser.State {
 
     updateKid(kid) {
 	switch (kid.state) {
-	case "skipping":
+	case "idle":
 	    this.kidSkip(kid);
 	}
     }
 
     kidSkip(kid) {
-	if (Math.abs(kid.destX - kid.x) < 2 && Math.abs(kid.destY - kid.y) < 2) {
-	    kid.destX = kid.homeX + game.rnd.between(-48, 48);
-	    kid.destY = kid.homeY + game.rnd.between(-48, 48);
-	}
-	const angle = Math.atan2(kid.destY - kid.y, kid.destX - kid.x);
-	const dx = kid.speed * Math.cos(angle);
-	const dy = kid.speed * Math.sin(angle);
-	kid.x += dx;
-	kid.y += dy;
-	if (dx < 0) {
-	    kid.sprite.animations.play("skip left");
-	} else {
-	    kid.sprite.animations.play("skip right");
-	}
+	this.walkAround(kid);
 
 	kid.sprite.x = kid.x;
 	kid.sprite.y = kid.y;
 
 	if (Phaser.Rectangle.intersects(kid.sprite, this.world.sprite)) {
-	    this.kidGetBonked(kid);
+	    this.getBonked(kid);
 	}
     }
 
-    kidGetBonked(kid) {
-	kid.state = "bonked";
-	kid.sprite.animations.play("fall");
+    updateGuard(guard) {
+	switch (guard.state) {
+	case "idle":
+	    this.walkAround(guard);
+	    this.checkBonk(guard);
+	    break;
+	}
+	guard.sprite.x = guard.x;
+	guard.sprite.y = guard.y;
+    }
+
+    checkBonk(npc) {
+	if (Phaser.Rectangle.intersects(npc.sprite, this.world.sprite)) {
+	    this.getBonked(npc);
+	}
+    }
+
+    getBonked(npc) {
+	npc.state = "bonked";
+	npc.sprite.animations.play("fall right");
+    }
+
+    walkAround(npc) {
+	if (Math.abs(npc.destX - npc.x) < 2 && Math.abs(npc.destY - npc.y) < 2) {
+	    npc.destX = npc.homeX + game.rnd.between(-48, 48);
+	    npc.destY = npc.homeY + game.rnd.between(-48, 48);
+	}
+	const angle = Math.atan2(npc.destY - npc.y, npc.destX - npc.x);
+	const dx = npc.speed * Math.cos(angle);
+	const dy = npc.speed * Math.sin(angle);
+	npc.x += dx;
+	npc.y += dy;
+	if (dx < 0) {
+	    npc.sprite.animations.play("walk left");
+	} else {
+	    npc.sprite.animations.play("walk right");
+	}
     }
 
     getTileIndices(map, property, value=true) {
