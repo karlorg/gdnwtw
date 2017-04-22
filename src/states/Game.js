@@ -3,9 +3,13 @@ import Phaser from 'phaser';
 
 import level1jsonMap from '../../assets/level1.json';
 
+const TAU = Math.PI * 2;
+
 const playerWidth = 32;
 const playerHeight = 32;
 const playerWalkSpeed = 1.5;
+const worldPreferredOrbit = 90;
+const worldAngularSpeed = (TAU / 2) / 60;
 
 export default class extends Phaser.State {
     init () {}
@@ -24,6 +28,8 @@ export default class extends Phaser.State {
 	this.blockingIndices = this.getTileIndices(this.tilemap, 'blocks');
 
 	this.camera.follow(this.player.sprite);
+
+	this.world = this.makeWorld(this.player);
     }
 
     render () {
@@ -33,9 +39,9 @@ export default class extends Phaser.State {
 
     update () {
 	this.controlPlayer();
+	this.updateWorld();
         this.player.sprite.x = this.player.x;
         this.player.sprite.y = this.player.y;
-	// console.log(this.tilemap.getTileWorldXY(this.player.x, this.player.y).index);
     }
 
     makePlayer ({x, y}) {
@@ -44,6 +50,20 @@ export default class extends Phaser.State {
 	    sprite: this.game.add.sprite(
 	    	x, y, 'player', 1
 	    )
+	};
+    }
+
+    makeWorld (player) {
+	const x = player.x + worldPreferredOrbit;
+	const y = player.y;
+	return {
+	    x, y,
+	    angle: 0,
+	    sun: player,
+	    sprite: this.game.add.sprite(
+		x, y, 'world', 0
+	    ),
+	    dummyProp: false
 	};
     }
 
@@ -119,6 +139,19 @@ export default class extends Phaser.State {
 	    x, y, undefined, undefined, "Obstacles", true).index;
 	return (this.walkableIndices.indexOf(groundIndex) >= 0
 	        && this.blockingIndices.indexOf(obstaclesIndex) < 0);
+    }
+
+    updateWorld() {
+	const sunX = this.world.sun.x;
+	const sunY = this.world.sun.y;
+	this.world.angle += worldAngularSpeed;
+	let newX = sunX + worldPreferredOrbit * Math.cos(this.world.angle);
+	let newY = sunY + worldPreferredOrbit * Math.sin(this.world.angle);
+	this.world.x = newX;
+	this.world.y = newY;
+	
+	this.world.sprite.x = this.world.x;
+	this.world.sprite.y = this.world.y;
     }
 
     getTileIndices(map, property, value=true) {
