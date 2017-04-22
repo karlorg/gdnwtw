@@ -8,6 +8,7 @@ const TAU = Math.PI * 2;
 const playerWidth = 32;
 const playerHeight = 32;
 const playerWalkSpeed = 1.5;
+const playerRunSpeed = playerWalkSpeed * 3;
 
 const worldWidth = 16;
 const worldHeight = 16;
@@ -110,8 +111,8 @@ export default class extends Phaser.State {
 	    homeX: x, homeY: y,
 	    destX: x, destY: y,
 	    speed: 0.7,
-	    runSpeed: playerWalkSpeed * 1.3,
-	    aggroRange: worldPreferredOrbit * 1.3,
+	    runSpeed: playerWalkSpeed * 1.7,
+	    aggroRange: worldPreferredOrbit * 1.7,
 	    contactDamage: 15,
 	    updateFunc: this.updateGuard,
 	    sprite
@@ -186,18 +187,21 @@ export default class extends Phaser.State {
 				 kbd.isDown(Phaser.KeyCode.UP));
 	    const isDownPressed = (kbd.isDown(Phaser.KeyCode.S) ||
 				   kbd.isDown(Phaser.KeyCode.DOWN));
+	    const isRunPressed = kbd.isDown(Phaser.KeyCode.SHIFT);
+
+	    const speed = isRunPressed ? playerRunSpeed : playerWalkSpeed;
 
 	    if (isLeftPressed) {
-		newX -= playerWalkSpeed;
+		newX -= speed;
 	    }
 	    if (isRightPressed) {
-		newX += playerWalkSpeed;
+		newX += speed;
 	    }
 	    if (isUpPressed) {
-		newY -= playerWalkSpeed;
+		newY -= speed;
 	    }
 	    if (isDownPressed) {
-		newY += playerWalkSpeed;
+		newY += speed;
 	    }
 	}
 
@@ -241,7 +245,7 @@ export default class extends Phaser.State {
 	const prefDist = worldPreferredOrbit;
 	let newDist = dist;
 	if (newDist > prefDist) {
-	    let catchUp = Math.min(0.05 * (newDist - prefDist), 2);
+	    let catchUp = Math.min(0.01 * (newDist - prefDist), 2);
 	    newDist -= catchUp;
 	    if (newDist < prefDist) {
 		newDist = prefDist;
@@ -263,10 +267,10 @@ export default class extends Phaser.State {
 			 {x: 0.1, y: 0.9},
 			 {x: 0.9, y: 0.9}];
 	let okToMove = true;
-	for (const {x, y} of offsets) {
-	    okToMove = okToMove
-		&& !this.isPosnBlocked(newX + x * worldWidth, newY + y * worldHeight);
-	}
+	// for (const {x, y} of offsets) {
+	//     okToMove = okToMove
+	// 	&& !this.isPosnBlocked(newX + x * worldWidth, newY + y * worldHeight);
+	// }
 	if (okToMove) {
 	    this.world.vx = newX - this.world.x;
 	    this.world.vy = newX - this.world.y;
