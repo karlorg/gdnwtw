@@ -26,6 +26,8 @@ export default class extends Phaser.State {
 	this.groundLayer = this.tilemap.createLayer('Ground');
 	this.groundLayer.resizeWorld();
 	this.obstacleLayer = this.tilemap.createLayer('Obstacles');
+
+	this.npcs = [];
 	this.createEntitiesFromJsonMap(level1jsonMap);
 	this.walkableIndices = this.getTileIndices(this.tilemap, 'walkable');
 	this.blockingIndices = this.getTileIndices(this.tilemap, 'blocks');
@@ -43,6 +45,9 @@ export default class extends Phaser.State {
     update () {
 	this.controlPlayer();
 	this.updateWorld();
+	for (const npc of this.npcs) {
+	    npc.updateFunc.call(this, npc);
+	}
         this.player.sprite.x = this.player.x;
         this.player.sprite.y = this.player.y;
     }
@@ -54,6 +59,26 @@ export default class extends Phaser.State {
 	    	x, y, 'player', 1
 	    )
 	};
+    }
+
+    makeKid ({x, y}) {
+	const sprite = this.game.add.sprite(
+ 	    x, y, 'kid', 1
+	);
+	sprite.animations.add('skip right', [0, 1], 2, true);
+	sprite.animations.add('skip left', [2, 3], 2, true);
+	sprite.animations.add('talk', [10, 11], 2, true);
+	sprite.animations.add('fall', [4, 5], 1, false);
+
+	return {
+	    x, y,
+	    state: "skipping",
+	    homeX: x, homeY: y,
+	    destX: x, destY: y,
+	    speed: 0.7,
+	    updateFunc: this.updateKid,
+	    sprite
+ 	};
     }
 
     makeWorld (player) {
@@ -77,10 +102,10 @@ export default class extends Phaser.State {
 	const player = this.getObjectsFromJsonMap(jsonMap, {type: 'player'});
 	this.player = this.makePlayer(player[0]);
 
-	// const powerUps = this.getObjectsFromJsonMap(jsonMap, {type: 'power up'});
-	// for (const pu of powerUps) {
-	//     this.powerUps.push(this.makePowerUp(pu));
-	// }
+	const kids = this.getObjectsFromJsonMap(jsonMap, {type: 'kid'});
+	for (const kid of kids) {
+	    this.npcs.push(this.makeKid(kid));
+	}
     }
 
     getObjectsFromJsonMap(jsonMap, {type}) {
@@ -228,6 +253,25 @@ export default class extends Phaser.State {
 	
 	this.world.sprite.x = this.world.x;
 	this.world.sprite.y = this.world.y;
+    }
+
+    updateKid(kid) {
+	if (Math.abs(kid.destX - kid.x) < 2 && Math.abs(kid.destY - kid.y) < 2) {
+	    kid.destX = kid.homeX + game.rnd.between(-48, 48);
+	    kid.destY = kid.homeY + game.rnd.between(-48, 48);
+	}
+	const angle = Math.atan2(kid.destY - kid.y, kid.destX - kid.x);
+	const dx = kid.speed * Math.cos(angle);
+	const dy = kid.speed * Math.sin(angle);
+	kid.x += dx;
+	kid.y += dy;
+	if (dx < 0) {
+	    kid.sprite.animations.play("skip left");
+	} else {
+	    kid.sprite.animations.play("skip right");
+	}
+	kid.sprite.x = kid.x;
+	kid.sprite.y = kid.y;
     }
 
     getTileIndices(map, property, value=true) {

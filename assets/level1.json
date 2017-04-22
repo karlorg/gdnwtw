@@ -38,6 +38,18 @@
                  "width":32,
                  "x":1672.83,
                  "y":2632.83
+                }, 
+                {
+                 "gid":99,
+                 "height":32,
+                 "id":4,
+                 "name":"kid",
+                 "rotation":0,
+                 "type":"kid",
+                 "visible":true,
+                 "width":32,
+                 "x":1787,
+                 "y":2471
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -46,7 +58,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":4,
+ "nextobjectid":5,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tileheight":32,
