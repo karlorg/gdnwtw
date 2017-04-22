@@ -34,6 +34,10 @@ export default class extends Phaser.State {
 
 	this.camera.follow(this.player.sprite);
 
+	this.hurtBorder = this.game.add.sprite(0, 0, "hurt-border");
+	this.hurtBorder.fixedToCamera = true;
+	this.hurtBorder.alpha = 0;
+
 	this.world = this.makeWorld(this.player);
     }
 
@@ -42,12 +46,14 @@ export default class extends Phaser.State {
         }
     }
 
-    update () {
+    update() {
 	this.controlPlayer();
 	this.updateWorld();
 	for (const npc of this.npcs) {
 	    npc.updateFunc.call(this, npc);
 	}
+	this.checkContactDamage();
+	this.updatePlayerHealth();
         this.player.sprite.x = this.player.x;
         this.player.sprite.y = this.player.y;
     }
@@ -55,6 +61,13 @@ export default class extends Phaser.State {
     makePlayer ({x, y}) {
 	return {
 	    x, y,
+	    maxHealth: 100,
+	    health: 100,
+	    healthRegenDelay: 3,  // seconds
+	    healthRegen: 25,  // per second
+	    lastDamageTime: 0,
+	    knockbackSpeed: 3.5,
+	    knockbackDuration: 0.7,
 	    sprite: this.game.add.sprite(
 	    	x, y, 'player', 1
 	    )
@@ -99,6 +112,7 @@ export default class extends Phaser.State {
 	    speed: 0.7,
 	    runSpeed: playerWalkSpeed * 1.3,
 	    aggroRange: worldPreferredOrbit * 1.3,
+	    contactDamage: 15,
 	    updateFunc: this.updateGuard,
 	    sprite
  	};
@@ -149,31 +163,42 @@ export default class extends Phaser.State {
     }
 
     controlPlayer() {
-	let kbd = this.game.input.keyboard;
-
-	const isLeftPressed = (kbd.isDown(Phaser.KeyCode.A) ||
-                               kbd.isDown(Phaser.KeyCode.LEFT));
-	const isRightPressed = (kbd.isDown(Phaser.KeyCode.D) ||
-				kbd.isDown(Phaser.KeyCode.RIGHT));
-	const isUpPressed = (kbd.isDown(Phaser.KeyCode.W) ||
-                               kbd.isDown(Phaser.KeyCode.UP));
-	const isDownPressed = (kbd.isDown(Phaser.KeyCode.S) ||
-				kbd.isDown(Phaser.KeyCode.DOWN));
-
 	let newX = this.player.x;
 	let newY = this.player.y;
 
-	if (isLeftPressed) {
-	    newX -= playerWalkSpeed;
-	}
-	if (isRightPressed) {
-	    newX += playerWalkSpeed;
-	}
-	if (isUpPressed) {
-	    newY -= playerWalkSpeed;
-	}
-	if (isDownPressed) {
-	    newY += playerWalkSpeed;
+	if (this.player.state === "knocked back") {
+	    if (this.player.lastDamageTime + this.player.knockbackDuration
+	        < game.time.totalElapsedSeconds()) {
+	        this.player.state = "normal";
+	        return;
+	    }
+	    newX = this.player.x + this.player.knockbackSpeed * Math.cos(this.player.knockbackAngle);
+	    newY = this.player.y + this.player.knockbackSpeed * Math.sin(this.player.knockbackAngle);
+	} else {
+	    
+	    let kbd = this.game.input.keyboard;
+
+	    const isLeftPressed = (kbd.isDown(Phaser.KeyCode.A) ||
+				   kbd.isDown(Phaser.KeyCode.LEFT));
+	    const isRightPressed = (kbd.isDown(Phaser.KeyCode.D) ||
+				    kbd.isDown(Phaser.KeyCode.RIGHT));
+	    const isUpPressed = (kbd.isDown(Phaser.KeyCode.W) ||
+				 kbd.isDown(Phaser.KeyCode.UP));
+	    const isDownPressed = (kbd.isDown(Phaser.KeyCode.S) ||
+				   kbd.isDown(Phaser.KeyCode.DOWN));
+
+	    if (isLeftPressed) {
+		newX -= playerWalkSpeed;
+	    }
+	    if (isRightPressed) {
+		newX += playerWalkSpeed;
+	    }
+	    if (isUpPressed) {
+		newY -= playerWalkSpeed;
+	    }
+	    if (isDownPressed) {
+		newY += playerWalkSpeed;
+	    }
 	}
 
 	const offsets = [{x: 0.3, y: 0.35},
@@ -288,6 +313,32 @@ export default class extends Phaser.State {
 	this.world.sprite.y = this.world.y;
     }
 
+    checkContactDamage() {
+	if (this.player.state === "knocked back") {
+	    return;
+	}
+	for (const npc of this.npcs) {
+	    if (npc.state === "bonked" || !npc.hasOwnProperty("contactDamage")) {
+		continue;
+	    }
+	    if (Phaser.Rectangle.intersects(npc.sprite, this.player.sprite)) {
+		this.player.knockbackAngle = Math.atan2(this.player.y - npc.y, this.player.x - npc.x);
+		this.player.state = "knocked back";
+		this.damagePlayer(npc.contactDamage);
+	    }
+	}
+    }
+
+    damagePlayer(damage) {
+	console.log("damage");
+	this.player.lastDamageTime = game.time.totalElapsedSeconds();
+	this.player.health -= damage;
+	if (this.player.health < 0) {
+	    this.player.health = 0;
+	    console.log("dead!");
+	}
+    }
+
     updateKid(kid) {
 	switch (kid.state) {
 	case "idle":
@@ -373,6 +424,17 @@ export default class extends Phaser.State {
 	} else {
 	    npc.sprite.animations.play("walk right");
 	}
+    }
+
+    updatePlayerHealth() {
+	if (this.player.lastDamageTime + this.player.healthRegenDelay
+	    < game.time.totalElapsedSeconds()) {
+	    this.player.health += this.player.healthRegen / 60;
+	    if (this.player.health > this.player.maxHealth) {
+		this.player.health = this.player.maxHealth;
+	    }
+	}
+	this.hurtBorder.alpha = 1 - (this.player.health / this.player.maxHealth);
     }
 
     getTileIndices(map, property, value=true) {
