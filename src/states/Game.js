@@ -8,6 +8,9 @@ const TAU = Math.PI * 2;
 const playerWidth = 32;
 const playerHeight = 32;
 const playerWalkSpeed = 1.5;
+
+const worldWidth = 16;
+const worldHeight = 16;
 const worldPreferredOrbit = 90;
 const worldAngularSpeed = (TAU / 2) / 60;
 
@@ -123,8 +126,9 @@ export default class extends Phaser.State {
 			 {x: 0.7, y: 0.9}];
 	let okToMove = true;
 	for (const {x, y} of offsets) {
-	    okToMove = okToMove && this.isPosnBlocked(newX + x * playerWidth,
-						      newY + y * playerHeight);
+	    okToMove = okToMove
+	        && this.isPosnWalkable(newX + x * playerWidth, newY + y * playerHeight)
+		&& !this.isPosnBlocked(newX + x * playerWidth, newY + y * playerHeight);
 	}
 	if (okToMove) {
 	    this.player.x = newX;
@@ -132,23 +136,67 @@ export default class extends Phaser.State {
 	}
     }
 
+    isPosnWalkable(x, y) {
+	const tile = this.tilemap.getTileWorldXY(x, y, undefined, undefined, "Ground", true);
+	if (tile === null) { return false };
+	const groundIndex = tile.index;
+	return this.walkableIndices.indexOf(groundIndex) >= 0;
+    }
+
     isPosnBlocked(x, y) {
-	const groundIndex = this.tilemap.getTileWorldXY(
-	    x, y, undefined, undefined, "Ground", true).index;
-	const obstaclesIndex = this.tilemap.getTileWorldXY(
-	    x, y, undefined, undefined, "Obstacles", true).index;
-	return (this.walkableIndices.indexOf(groundIndex) >= 0
-	        && this.blockingIndices.indexOf(obstaclesIndex) < 0);
+	const tile = this.tilemap.getTileWorldXY(x, y, undefined, undefined, "Obstacles", true);
+	if (tile === null) { return true };
+	const obstaclesIndex = tile.index;
+	return this.blockingIndices.indexOf(obstaclesIndex) >= 0;
     }
 
     updateWorld() {
 	const sunX = this.world.sun.x;
 	const sunY = this.world.sun.y;
-	this.world.angle += worldAngularSpeed;
-	let newX = sunX + worldPreferredOrbit * Math.cos(this.world.angle);
-	let newY = sunY + worldPreferredOrbit * Math.sin(this.world.angle);
-	this.world.x = newX;
-	this.world.y = newY;
+	const dist = Math.sqrt(
+	    (sunX - this.world.x) * (sunX - this.world.x) +
+	    (sunY - this.world.y) * (sunY - this.world.y)
+	);
+	const prefDist = worldPreferredOrbit;
+	let newDist = dist;
+	if (newDist > prefDist) {
+	    let catchUp = Math.min(0.05 * (newDist - prefDist), 2);
+	    newDist -= catchUp;
+	    if (newDist < prefDist) {
+		newDist = prefDist;
+	    }
+	} else if (newDist < prefDist) {
+	    let catchUp = Math.min(0.05 * (prefDist - newDist), 2);
+	    newDist += catchUp;
+	    if (newDist > prefDist) {
+		newDist = prefDist;
+	    }
+	} 
+
+	let newAngle = Math.atan2(this.world.y - sunY, this.world.x - sunX) + worldAngularSpeed;
+	let adjustment = 0;
+	while (adjustment < 1) {
+	    let newX = sunX + newDist * Math.cos(newAngle);
+	    let newY = sunY + newDist * Math.sin(newAngle);
+
+	    const offsets = [{x: 0.1, y: 0.1},
+			     {x: 0.9, y: 0.1},
+			     {x: 0.1, y: 0.9},
+			     {x: 0.9, y: 0.9}];
+	    let okToMove = true;
+	    for (const {x, y} of offsets) {
+		okToMove = okToMove
+		    && !this.isPosnBlocked(newX + x * worldWidth, newY + y * worldHeight);
+	    }
+	    if (okToMove) {
+		this.world.angle = newAngle;
+		this.world.x = newX;
+		this.world.y = newY;
+		break;
+	    }
+	    adjustment += 1;
+	    newAngle += worldAngularSpeed;
+	}
 	
 	this.world.sprite.x = this.world.x;
 	this.world.sprite.y = this.world.y;
