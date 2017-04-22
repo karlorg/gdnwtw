@@ -61,7 +61,10 @@ export default class extends Phaser.State {
 	const y = player.y;
 	return {
 	    x, y,
-	    angle: 0,
+	    // vx and vy are not used for physics, but are recorded when the world is updated and
+	    // (may be) used by collision recipients to find out what direction they've been hit from
+	    vx: 0,
+	    vy: 1,
 	    sun: player,
 	    sprite: this.game.add.sprite(
 		x, y, 'world', 0
@@ -174,28 +177,53 @@ export default class extends Phaser.State {
 	} 
 
 	let newAngle = Math.atan2(this.world.y - sunY, this.world.x - sunX) + worldAngularSpeed;
-	let adjustment = 0;
-	while (adjustment < 1) {
-	    let newX = sunX + newDist * Math.cos(newAngle);
-	    let newY = sunY + newDist * Math.sin(newAngle);
+	let newX = sunX + newDist * Math.cos(newAngle);
+	let newY = sunY + newDist * Math.sin(newAngle);
 
-	    const offsets = [{x: 0.1, y: 0.1},
-			     {x: 0.9, y: 0.1},
-			     {x: 0.1, y: 0.9},
-			     {x: 0.9, y: 0.9}];
-	    let okToMove = true;
-	    for (const {x, y} of offsets) {
-		okToMove = okToMove
-		    && !this.isPosnBlocked(newX + x * worldWidth, newY + y * worldHeight);
+	const offsets = [{x: 0.1, y: 0.1},
+			 {x: 0.9, y: 0.1},
+			 {x: 0.1, y: 0.9},
+			 {x: 0.9, y: 0.9}];
+	let okToMove = true;
+	for (const {x, y} of offsets) {
+	    okToMove = okToMove
+		&& !this.isPosnBlocked(newX + x * worldWidth, newY + y * worldHeight);
+	}
+	if (okToMove) {
+	    this.world.vx = newX - this.world.x;
+	    this.world.vy = newX - this.world.y;
+	    this.world.x = newX;
+	    this.world.y = newY;
+	} else {
+	    // try to scrape along the object in the x and y directions only
+	    let angleOfTravel = Math.atan2(newY - this.world.y, newX - this.world.x);
+	    let speedOfTravel = Math.sqrt(
+		(newX - this.world.x) * (newX - this.world.x) +
+		    (newY - this.world.y) * (newY - this.world.y)
+	    );
+	    let attempt = 0;
+	    while (attempt < 2) {
+		let newNewX = this.world.x;
+		let newNewY = this.world.y;
+		if (attempt === 0) {
+	            newNewY = newY + speedOfTravel * 0.6 * Math.sin(angleOfTravel);
+		} else {
+	            newNewX = newX + speedOfTravel * 0.6 * Math.cos(angleOfTravel);
+		}
+	        let okToMove = true;
+	        for (const {x, y} of offsets) {
+	            okToMove = okToMove
+		        && !this.isPosnBlocked(newNewX + x * worldWidth, newNewY + y * worldHeight);
+	        }
+	        if (okToMove) {
+		    this.world.vx = newNewX - this.world.x;
+		    this.world.vy = newNewX - this.world.y;
+		    this.world.x = newNewX;
+		    this.world.y = newNewY;
+		    break;
+	        }
+		attempt += 1;
 	    }
-	    if (okToMove) {
-		this.world.angle = newAngle;
-		this.world.x = newX;
-		this.world.y = newY;
-		break;
-	    }
-	    adjustment += 1;
-	    newAngle += worldAngularSpeed;
 	}
 	
 	this.world.sprite.x = this.world.x;
