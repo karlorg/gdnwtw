@@ -235,8 +235,8 @@
                  "type":"arena trigger",
                  "visible":true,
                  "width":126,
-                 "x":1191.5,
-                 "y":1573
+                 "x":1187.5,
+                 "y":1574
                 }, 
                 {
                  "height":84,
@@ -391,8 +391,8 @@
                  "type":"respawn",
                  "visible":true,
                  "width":32,
-                 "x":1332,
-                 "y":1322
+                 "x":1953,
+                 "y":1328
                 }, 
                 {
                  "height":35,
@@ -410,8 +410,163 @@
                  "type":"checkpoint",
                  "visible":true,
                  "width":127.5,
-                 "x":1731,
-                 "y":1321.33333333333
+                 "x":1852,
+                 "y":1335.33333333333
+                }, 
+                {
+                 "height":43,
+                 "id":30,
+                 "name":"checkpoint 0",
+                 "properties":
+                    {
+                     "respawnNo":0
+                    },
+                 "propertytypes":
+                    {
+                     "respawnNo":"int"
+                    },
+                 "rotation":0,
+                 "type":"checkpoint",
+                 "visible":true,
+                 "width":512.5,
+                 "x":1662.25,
+                 "y":1747.165
+                }, 
+                {
+                 "gid":162,
+                 "height":32,
+                 "id":31,
+                 "name":"respawn 0",
+                 "properties":
+                    {
+                     "respawnNo":0
+                    },
+                 "propertytypes":
+                    {
+                     "respawnNo":"int"
+                    },
+                 "rotation":0,
+                 "type":"respawn",
+                 "visible":true,
+                 "width":32,
+                 "x":1899.25,
+                 "y":1783.835
+                }, 
+                {
+                 "gid":162,
+                 "height":32,
+                 "id":33,
+                 "name":"respawn 2",
+                 "properties":
+                    {
+                     "respawnNo":2
+                    },
+                 "propertytypes":
+                    {
+                     "respawnNo":"int"
+                    },
+                 "rotation":0,
+                 "type":"respawn",
+                 "visible":true,
+                 "width":32,
+                 "x":1233.25,
+                 "y":1525.84
+                }, 
+                {
+                 "height":35,
+                 "id":34,
+                 "name":"checkpoint 2",
+                 "properties":
+                    {
+                     "respawnNo":2
+                    },
+                 "propertytypes":
+                    {
+                     "respawnNo":"int"
+                    },
+                 "rotation":0,
+                 "type":"checkpoint",
+                 "visible":true,
+                 "width":40.5,
+                 "x":1154.25,
+                 "y":1515.16
+                }, 
+                {
+                 "height":35,
+                 "id":35,
+                 "name":"checkpoint 2",
+                 "properties":
+                    {
+                     "respawnNo":2
+                    },
+                 "propertytypes":
+                    {
+                     "respawnNo":"int"
+                    },
+                 "rotation":0,
+                 "type":"checkpoint",
+                 "visible":true,
+                 "width":40.5,
+                 "x":1224.75,
+                 "y":1570.5
+                }, 
+                {
+                 "height":35,
+                 "id":36,
+                 "name":"checkpoint 2",
+                 "properties":
+                    {
+                     "respawnNo":2
+                    },
+                 "propertytypes":
+                    {
+                     "respawnNo":"int"
+                    },
+                 "rotation":0,
+                 "type":"checkpoint",
+                 "visible":true,
+                 "width":40.5,
+                 "x":1319.75,
+                 "y":1517.5
+                }, 
+                {
+                 "height":35,
+                 "id":37,
+                 "name":"checkpoint 3",
+                 "properties":
+                    {
+                     "respawnNo":3
+                    },
+                 "propertytypes":
+                    {
+                     "respawnNo":"int"
+                    },
+                 "rotation":0,
+                 "type":"checkpoint",
+                 "visible":true,
+                 "width":40.5,
+                 "x":1224.75,
+                 "y":2055.5
+                }, 
+                {
+                 "gid":162,
+                 "height":32,
+                 "id":38,
+                 "name":"respawn 3",
+                 "properties":
+                    {
+                     "respawnNo":3
+                    },
+                 "propertytypes":
+                    {
+                     "respawnNo":"int"
+                    },
+                 "rotation":0,
+                 "type":"respawn",
+                 "visible":true,
+                 "width":32,
+                 "x":1230,
+                 "y":2070
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -420,7 +575,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":30,
+ "nextobjectid":39,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tileheight":32,

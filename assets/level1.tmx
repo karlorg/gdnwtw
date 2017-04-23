@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" nextobjectid="30">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" nextobjectid="39">
  <tileset firstgid="1" name="overworld" tilewidth="32" tileheight="32" tilecount="189" columns="21">
   <image source="images/overworld.png" width="672" height="288"/>
   <tile id="8">
@@ -667,7 +667,7 @@
     <property name="unlocksArenaNo" type="int" value="4"/>
    </properties>
   </object>
-  <object id="17" name="trigger" type="arena trigger" x="1191.5" y="1573" width="126" height="26">
+  <object id="17" name="trigger" type="arena trigger" x="1187.5" y="1574" width="126" height="26">
    <properties>
     <property name="locksArenaNo" type="int" value="2"/>
    </properties>
@@ -707,14 +707,54 @@
     <property name="locksArenaNo" type="int" value="4"/>
    </properties>
   </object>
-  <object id="26" name="respawn 1" type="respawn" gid="162" x="1332" y="1322" width="32" height="32">
+  <object id="26" name="respawn 1" type="respawn" gid="162" x="1953" y="1328" width="32" height="32">
    <properties>
     <property name="respawnNo" type="int" value="1"/>
    </properties>
   </object>
-  <object id="28" name="checkpoint 1" type="checkpoint" x="1731" y="1321.33" width="127.5" height="35">
+  <object id="28" name="checkpoint 1" type="checkpoint" x="1852" y="1335.33" width="127.5" height="35">
    <properties>
     <property name="respawnNo" type="int" value="1"/>
+   </properties>
+  </object>
+  <object id="30" name="checkpoint 0" type="checkpoint" x="1662.25" y="1747.16" width="512.5" height="43">
+   <properties>
+    <property name="respawnNo" type="int" value="0"/>
+   </properties>
+  </object>
+  <object id="31" name="respawn 0" type="respawn" gid="162" x="1899.25" y="1783.84" width="32" height="32">
+   <properties>
+    <property name="respawnNo" type="int" value="0"/>
+   </properties>
+  </object>
+  <object id="33" name="respawn 2" type="respawn" gid="162" x="1233.25" y="1525.84" width="32" height="32">
+   <properties>
+    <property name="respawnNo" type="int" value="2"/>
+   </properties>
+  </object>
+  <object id="34" name="checkpoint 2" type="checkpoint" x="1154.25" y="1515.16" width="40.5" height="35">
+   <properties>
+    <property name="respawnNo" type="int" value="2"/>
+   </properties>
+  </object>
+  <object id="35" name="checkpoint 2" type="checkpoint" x="1224.75" y="1570.5" width="40.5" height="35">
+   <properties>
+    <property name="respawnNo" type="int" value="2"/>
+   </properties>
+  </object>
+  <object id="36" name="checkpoint 2" type="checkpoint" x="1319.75" y="1517.5" width="40.5" height="35">
+   <properties>
+    <property name="respawnNo" type="int" value="2"/>
+   </properties>
+  </object>
+  <object id="37" name="checkpoint 3" type="checkpoint" x="1224.75" y="2055.5" width="40.5" height="35">
+   <properties>
+    <property name="respawnNo" type="int" value="3"/>
+   </properties>
+  </object>
+  <object id="38" name="respawn 3" type="respawn" gid="162" x="1230" y="2070" width="32" height="32">
+   <properties>
+    <property name="respawnNo" type="int" value="3"/>
    </properties>
   </object>
  </objectgroup>
