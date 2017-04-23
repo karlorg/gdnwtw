@@ -266,6 +266,7 @@ export default class extends Phaser.State {
 	    shotRecoverTime: 0.7,
 	    shotCooldownTime: 2,
 	    shotSpeed: playerRunSpeed * 0.8,
+	    shotDamage: 21,
 	    contactDamage: 10,
 	    tauntStartTime: 0,
 	    tauntDuration: 1,
@@ -676,11 +677,7 @@ export default class extends Phaser.State {
     }
 
     checkContactDamage() {
-	if (this.player.state === "knocked back" || this.player.state === "dying"
-	    || this.player.state === "dead"
-	    || (this.player.timeInvincibleStarted + this.player.invincibleDuration
-		> game.time.totalElapsedSeconds())
-	   ) {
+	if (!this.playerCanTakeDamage()) {
 	    return;
 	}
 	for (const npc of this.npcs) {
@@ -690,14 +687,6 @@ export default class extends Phaser.State {
 	    if (Phaser.Rectangle.intersects(npc.sprite, this.player.sprite)) {
 		const angle = this.player.knockbackAngle =
 		    Math.atan2(this.player.y - npc.y, this.player.x - npc.x);
-		if (angle > 0 && angle < TAU / 2) {
-		    this.player.sprite.animations.play('knock down');
-		    this.player.knockbackDirection = "down";
-		} else {
-		    this.player.sprite.animations.play('knock up');
-		    this.player.knockbackDirection = "up";
-		}
-		this.player.state = "knocked back";
 		this.damagePlayer(npc.contactDamage);
 		if (npc.hasOwnProperty("tauntDuration")) {
 		    npc.tauntStartTime = game.time.totalElapsedSeconds();
@@ -707,7 +696,35 @@ export default class extends Phaser.State {
 	}
     }
 
+    knockbackPlayer(angle) {
+	if (angle > 0 && angle < TAU / 2) {
+	    this.player.sprite.animations.play('knock down');
+	    this.player.knockbackDirection = "down";
+	} else {
+	    this.player.sprite.animations.play('knock up');
+	    this.player.knockbackDirection = "up";
+	}
+	this.player.state = "knocked back";
+    }
+
     checkShotDamage() {
+	if (!this.playerCanTakeDamage()) {
+	    return;
+	}
+	let toRemove = [];
+	for (const [i, shot] of this.shots.entries()) {
+	    if (Phaser.Rectangle.intersects(shot.sprite, this.player.sprite)) {
+		const angle = this.player.knockbackAngle = Math.atan2(shot.vy, shot.vx);
+		this.knockbackPlayer(angle);
+		this.damagePlayer(shot.damage);
+		toRemove.push(i);
+	    }
+	}
+	for (let j = toRemove.length - 1; j >= 0; j--) {
+	    const shot = this.shots[toRemove[j]];
+	    shot.sprite.destroy();
+	    this.shots.splice(toRemove[j], 1);
+	}
     }
 
     damagePlayer(damage) {
@@ -876,6 +893,7 @@ export default class extends Phaser.State {
 	const shot = {
 	    x: source.x, y: source.y,
 	    speed: source.shotSpeed,
+	    damage: source.shotDamage,
 	    distanceLeft: source.shotRange
 	};
 	const angle = Math.atan2(target.y - source.y, target.x - source.x);
@@ -978,4 +996,11 @@ export default class extends Phaser.State {
 	return {dx: 0, dy: 0};
     }
 
+    playerCanTakeDamage() {
+	return !(this.player.state === "knocked back" || this.player.state === "dying"
+		 || this.player.state === "dead"
+		 || (this.player.timeInvincibleStarted + this.player.invincibleDuration
+		     > game.time.totalElapsedSeconds())
+	        );
+    }
 }
