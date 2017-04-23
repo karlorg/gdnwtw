@@ -324,6 +324,9 @@ export default class extends Phaser.State {
 	    if (isDownPressed) {
 		dy += speed;
 	    }
+	    const totalSpeed = Math.sqrt(dx * dx + dy * dy);
+	    dx *= speed / totalSpeed;
+	    dy *= speed / totalSpeed;
 	}
 
 	const offsets = [{x: 0.3, y: 0.35},
