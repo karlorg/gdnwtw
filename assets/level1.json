@@ -868,6 +868,10 @@
                 {
                  "blocks":true
                 },
+             "140":
+                {
+                 "blocks":true
+                },
              "148":
                 {
                  "walkable":true
@@ -1144,6 +1148,10 @@
                  "blocks":"bool"
                 },
              "14":
+                {
+                 "blocks":"bool"
+                },
+             "140":
                 {
                  "blocks":"bool"
                 },

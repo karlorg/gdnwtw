@@ -109,7 +109,7 @@ export default class extends Phaser.State {
 	    lastDamageTime: 0,
 	    diedTime: 0,
 	    knockbackDirection: "none",
-	    knockbackSpeed: 4,
+	    knockbackSpeed: 3,
 	    knockbackDuration: 0.5,
 	    sprite
  	};
@@ -118,6 +118,8 @@ export default class extends Phaser.State {
     resetPlayer({x, y}) {
 	this.player.x = x;
 	this.player.y = y;
+	this.world.x = this.player.x + worldPreferredOrbit;
+	this.world.y = this.player.y;
 	this.player.health = this.player.maxHealth;
 	this.player.state = "normal";
 	this.player.timeInvincibleStarted = game.time.totalElapsedSeconds();

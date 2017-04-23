@@ -301,6 +301,11 @@
     <property name="blocks" type="bool" value="true"/>
    </properties>
   </tile>
+  <tile id="140">
+   <properties>
+    <property name="blocks" type="bool" value="true"/>
+   </properties>
+  </tile>
   <tile id="148">
    <properties>
     <property name="walkable" type="bool" value="true"/>
