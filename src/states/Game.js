@@ -30,6 +30,7 @@ export default class extends Phaser.State {
 	this.frillsLayer = this.tilemap.createLayer('Frills');
 
 	this.npcs = [];
+	this.shots = [];
 	this.arenaTriggers = [];
 	this.arenaStates = [];
 	this.checkpoints = [];
@@ -70,6 +71,8 @@ export default class extends Phaser.State {
 	for (const npc of this.npcs) {
 	    npc.updateFunc.call(this, npc);
 	}
+	this.updateShots();
+	this.checkShotDamage();
 	this.checkContactDamage();
 	this.updatePlayerHealth();
         this.player.sprite.x = this.player.x;
@@ -229,7 +232,10 @@ export default class extends Phaser.State {
  	    x, y, 'shooter', 1
 	);
 	sprite.animations.add('idle', [0, 1], 2, true);
-	sprite.animations.add('shoot', [10, 11], 1, true);
+	sprite.animations.add('prepare shot', [10], 1, false);
+	sprite.animations.add('shoot', [11], 1, false);
+	sprite.animations.add('fall right', [20, 21], 1, false);
+	sprite.animations.add('fall left', [20, 21], 1, false);
 	sprite.animations.play('idle')
 
 	let unlocksArenaNo = undefined;
@@ -249,15 +255,48 @@ export default class extends Phaser.State {
 			       {x: 0.9, y: 0.1},
 			       {x: 0.1, y: 0.9},
 			       {x: 0.9, y: 0.9}],
+	    homeX: x, homeY: y,
+	    destX: x, destY: y,
 	    speed: playerWalkSpeed,
-	    aggroRange: playerWidth * 10,
+	    aggroRange: worldPreferredOrbit * 2.5,
+	    shotRange: worldPreferredOrbit * 3.5,
+	    timeStartedPreparingShot: 0,
+	    shotPrepareTime: 0.7,
+	    timeStartedRecovery: 0,
+	    shotRecoverTime: 0.7,
+	    shotCooldownTime: 2,
+	    shotSpeed: playerRunSpeed * 0.8,
 	    contactDamage: 10,
 	    tauntStartTime: 0,
 	    tauntDuration: 1,
 	    unlocksArenaNo,
-	    updateFunc: () => {},
+	    updateFunc: this.updateShooter,
 	    sprite
  	};
+    }
+
+    updateShooter(npc) {
+	switch (npc.state) {
+	case "idle":
+	    this.walkAround(npc);
+	    this.checkShooterAggro(npc);
+	    this.checkBonk(npc);
+	    break;
+	case "preparing shot":
+	    this.updatePreparingShot(npc);
+	    this.checkBonk(npc);
+	    break;
+	case "recovering":
+	    this.updateRecovery(npc);
+	    this.checkBonk(npc);
+	    break;
+	case "taunting":
+	    this.updateTaunting(npc);
+	    this.checkBonk(npc);
+	    break;
+	}
+	npc.sprite.x = npc.x;
+	npc.sprite.y = npc.y;
     }
 
     makeArenaTrigger({x, y, height, width, properties: {locksArenaNo}}) {
@@ -611,6 +650,26 @@ export default class extends Phaser.State {
 	this.world.sprite.y = this.world.y;
     }
 
+    updateShots() {
+	let toRemove = [];
+	for (const [i, shot] of this.shots.entries()) {
+	    shot.x += shot.vx;
+	    shot.y += shot.vy;
+	    const dist = Math.sqrt(shot.vx * shot.vx + shot.vy * shot.vy);
+	    shot.distanceLeft -= dist;
+	    if (shot.distanceLeft <= 0) {
+		toRemove.push(i);
+	    }
+	    shot.sprite.x = shot.x;
+	    shot.sprite.y = shot.y;
+	}
+	for (let j = toRemove.length - 1; j >= 0; j--) {
+	    const shot = this.shots[toRemove[j]];
+	    shot.sprite.destroy();
+	    this.shots.splice(toRemove[j], 1);
+	}
+    }
+
     checkContactDamage() {
 	if (this.player.state === "knocked back" || this.player.state === "dying"
 	    || this.player.state === "dead"
@@ -641,6 +700,9 @@ export default class extends Phaser.State {
 		}
 	    }
 	}
+    }
+
+    checkShotDamage() {
     }
 
     damagePlayer(damage) {
@@ -730,6 +792,21 @@ export default class extends Phaser.State {
 	}
     }
 
+    checkShooterAggro(npc) {
+	if (npc.timeStartedRecovery + npc.shotCooldownTime > game.time.totalElapsedSeconds()) {
+	    return;
+	}
+	const dist = Math.sqrt(
+	    (npc.x - this.player.x) * (npc.x - this.player.x) +
+		(npc.y - this.player.y) * (npc.y - this.player.y)
+	);
+	if (dist < npc.aggroRange) {
+	    npc.sprite.animations.play("prepare shot");
+	    npc.timeStartedPreparingShot = game.time.totalElapsedSeconds();
+	    npc.state = "preparing shot";
+	}
+    }
+
     updateAggro(guard) {
 	const dist = Math.sqrt(
 	    (guard.homeX - this.player.x) * (guard.homeX - this.player.x) +
@@ -772,6 +849,37 @@ export default class extends Phaser.State {
 	if (npc.tauntStartTime + npc.tauntDuration < game.time.totalElapsedSeconds()) {
 	    npc.state = "idle";
 	}
+    }
+
+    updatePreparingShot(npc) {
+	if (npc.timeStartedPreparingShot + npc.shotPrepareTime < game.time.totalElapsedSeconds()) {
+	    this.shootAt(npc, this.player);
+	    npc.sprite.animations.play("shoot");
+	    npc.timeStartedRecovery = game.time.totalElapsedSeconds();
+	    npc.state = "recovering";
+	}
+    }
+
+    updateRecovery(npc) {
+	if (npc.timeStartedRecovery + npc.shotRecoverTime < game.time.totalElapsedSeconds()) {
+	    npc.sprite.animations.play("idle");
+	    npc.state = "idle";
+	}
+    }
+
+    shootAt(source, target) {
+	const shot = {
+	    x: source.x, y: source.y,
+	    speed: source.shotSpeed,
+	    distanceLeft: source.shotRange
+	};
+	const angle = Math.atan2(target.y - source.y, target.x - source.x);
+	shot.vx = shot.speed * Math.cos(angle);
+	shot.vy = shot.speed * Math.sin(angle);
+	shot.sprite = game.add.sprite(shot.x, shot.y, 'shot');
+	shot.sprite.animations.add('idle', [0, 1], 3, true);
+	shot.sprite.animations.play('idle');
+	this.shots.push(shot);
     }
 
     checkBonk(npc) {
