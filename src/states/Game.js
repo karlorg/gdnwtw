@@ -115,6 +115,7 @@ export default class extends Phaser.State {
 	this.player.y = y;
 	this.player.health = this.player.maxHealth;
 	this.player.state = "normal";
+	this.player.timeInvincibleStarted = game.time.totalElapsedSeconds();
     }
 
     makeKid ({x, y}) {
