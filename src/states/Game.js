@@ -77,9 +77,14 @@ export default class extends Phaser.State {
 	const sprite = this.game.add.sprite(
 	    x, y, 'player', 0
 	);
-	sprite.animations.add('stand down', [0]);
+	sprite.animations.add('stand down', [0, 20], 0.5, true);
+	sprite.animations.add('walk down', [3, 4, 5, 6], 2, true);
+	sprite.animations.add('run down', [3, 4, 5, 6], 4, true);
+	sprite.animations.add('walk up', [23, 24, 25, 26], 2, true);
+	sprite.animations.add('run up', [23, 24, 25, 26], 4, true);
 	sprite.animations.add('knock up', [1]);
 	sprite.animations.add('knock down', [21]);
+	sprite.animations.play('run down');
 
 	return {
 	    x, y,
@@ -222,7 +227,6 @@ export default class extends Phaser.State {
 
     countUnlocker(no) {
 	this.arenaStates[no].unlockersRemaining -= 1;
-	console.log("" + this.arenaStates[no].unlockersRemaining + " left");
 	if (this.arenaStates[no].unlockersRemaining <= 0) {
 	    this.arenaStates[no].state = "finished";
 	    this.openAllGates();
@@ -325,9 +329,29 @@ export default class extends Phaser.State {
 		dy += speed;
 	    }
 	    const totalSpeed = Math.sqrt(dx * dx + dy * dy);
-	    dx *= speed / totalSpeed;
-	    dy *= speed / totalSpeed;
+	    if (totalSpeed > 0) {
+	        dx *= speed / totalSpeed;
+	        dy *= speed / totalSpeed;
+	    }
+
+	    const finalSpeed = Math.sqrt(dx * dx + dy * dy);
+	    if (finalSpeed > playerWalkSpeed + 0.01) {
+		if (dy > 0) {
+	            this.player.sprite.animations.play('run down');
+		} else {
+	            this.player.sprite.animations.play('run up');
+		}
+	    } else if (finalSpeed > 0.01) {
+		if (dy > 0) {
+	            this.player.sprite.animations.play('walk down');
+		} else {
+	            this.player.sprite.animations.play('walk up');
+		}
+	    } else {
+	        this.player.sprite.animations.play('stand down');
+	    }
 	}
+
 
 	const offsets = [{x: 0.3, y: 0.35},
 			 {x: 0.7, y: 0.35},
@@ -700,9 +724,11 @@ export default class extends Phaser.State {
 	const dist = Math.sqrt(dx * dx + dy * dy);
 	const dxSign = dx < 0 ? -1 : 1;
 	const dySign = dy < 0 ? -1 : 1;
+	const xOnly = Math.abs(dx) > 0.01 ? {dx: dist * dxSign, dy: 0} : {dx: 0, dy: 0};
+	const yOnly = Math.abs(dy) > 0.01 ? {dx: 0, dy: dist * dySign} : {dx: 0, dy: 0};
 	const toTry = Math.abs(dx) > Math.abs(dy)
-	      ? [{dx, dy}, {dx: dist * dxSign, dy: 0}, {dx: 0, dy: dist * dySign}]
-	      : [{dx, dy}, {dx: 0, dy: dist * dySign}, {dx: dist * dxSign, dy: 0}];
+	      ? [{dx, dy}, xOnly, yOnly]
+	      : [{dx, dy}, yOnly, xOnly];
 	for ({dx, dy} of toTry) {
 	    if (this.isDestWalkableAndNotBlocked(x + dx, y + dy, w, h, offsets)) {
 	        return {dx: dx, dy: dy};
