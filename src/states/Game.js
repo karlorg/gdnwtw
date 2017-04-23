@@ -51,6 +51,8 @@ export default class extends Phaser.State {
 	this.hurtBorder.fixedToCamera = true;
 	this.hurtBorder.alpha = 0;
 
+	this.overSpritesLayer = this.tilemap.createLayer('Over sprites');
+
 	this.world = this.makeWorld(this.player);
     }
 
