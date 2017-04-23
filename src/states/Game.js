@@ -32,6 +32,8 @@ export default class extends Phaser.State {
 	this.npcs = [];
 	this.arenaTriggers = [];
 	this.arenaStates = [];
+	this.checkpoints = [];
+	this.respawns = [];
 	this.createEntitiesFromJsonMap(level1jsonMap);
 	this.walkableIndices = this.getTileIndices(this.tilemap, 'walkable');
 	this.blockingIndices = this.getTileIndices(this.tilemap, 'blocks');
@@ -63,6 +65,7 @@ export default class extends Phaser.State {
     update() {
 	this.controlPlayer();
 	this.checkArenaTriggers();
+	this.checkCheckpoints();
 	this.updateWorld();
 	for (const npc of this.npcs) {
 	    npc.updateFunc.call(this, npc);
@@ -90,6 +93,8 @@ export default class extends Phaser.State {
 
 	return {
 	    x, y,
+	    state: "normal",
+	    currentRespawn: null,
 	    maxHealth: 10,
 	    health: 10,
 	    healthRegenDelay: 3,  // seconds
@@ -101,6 +106,13 @@ export default class extends Phaser.State {
 	    knockbackDuration: 0.5,
 	    sprite
  	};
+    }
+
+    resetPlayer({x, y}) {
+	this.player.x = x;
+	this.player.y = y;
+	this.player.health = this.player.maxHealth;
+	this.player.state = "normal";
     }
 
     makeKid ({x, y}) {
@@ -237,6 +249,18 @@ export default class extends Phaser.State {
 	}
     }
 
+    makeCheckpoint({x, y, width, height, properties: {respawnNo}}) {
+	return {
+	    x, y, width, height, respawnNo
+	};
+    }
+
+    makeRespawn({x, y, properties: {respawnNo}}) {
+	return {
+	    x, y, respawnNo
+	};
+    }
+
     makeWorld (player) {
 	const x = player.x + worldPreferredOrbit;
 	const y = player.y;
@@ -277,6 +301,16 @@ export default class extends Phaser.State {
 	for (const trigger of triggers) {
 	    this.arenaTriggers.push(this.makeArenaTrigger(trigger));
 	}
+
+	const checkpoints = this.getObjectsFromJsonMap(jsonMap, {type: 'checkpoint'});
+	for (const cp of checkpoints) {
+	    this.checkpoints.push(this.makeCheckpoint(cp));
+	}
+
+	const respawns = this.getObjectsFromJsonMap(jsonMap, {type: 'respawn'});
+	for (const respawn of respawns) {
+	    this.respawns[respawn.properties.respawnNo] = this.makeRespawn(respawn);
+	}
     }
 
     getObjectsFromJsonMap(jsonMap, {type}) {
@@ -316,6 +350,9 @@ export default class extends Phaser.State {
 			this.player.sprite.animations.play("dead down");
 			break;
 		    }
+		    const timer = game.time.create(true);
+		    timer.add(4000, this.respawnPlayer, this);
+		    timer.start();
 		    return;
 		}
 	    }
@@ -384,6 +421,16 @@ export default class extends Phaser.State {
 	this.player.y += dy;
     }
 
+    respawnPlayer() {
+	if (this.player.currentRespawn === null) {
+	    const player = this.getObjectsFromJsonMap(level1jsonMap, {type: 'player'})[0];
+	    this.resetPlayer({x: player.x, y: player.y});
+	    return;
+	}
+	const respawn = this.respawns[this.player.currentRespawn];
+	this.resetPlayer(respawn);
+    }
+
     isPosnWalkable(x, y) {
 	const tile = this.tilemap.getTileWorldXY(x, y, undefined, undefined, "Ground", true);
 	if (tile === null) { return false };
@@ -431,6 +478,15 @@ export default class extends Phaser.State {
 		this.tilemap.putTile(open, tile.x, tile.y, "Obstacles");
 	    }
 	}, this, 0, 0, this.tilemap.width, this.tilemap.height, "Obstacles");
+    }
+
+    checkCheckpoints() {
+	for (const cp of this.checkpoints) {
+	    const cpRect = new Phaser.Rectangle(cp.x, cp.y, cp.width, cp.height);
+	    if (Phaser.Rectangle.intersects(this.player.sprite, cpRect)) {
+		this.player.currentRespawn = cp.respawnNo;
+	    }
+	}
     }
 
     updateWorld() {

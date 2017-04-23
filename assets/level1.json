@@ -47,8 +47,8 @@
                  "type":"player",
                  "visible":true,
                  "width":32,
-                 "x":1233.49666666667,
-                 "y":1735.83
+                 "x":1977.49666666667,
+                 "y":1330.16333333333
                 }, 
                 {
                  "gid":99,
@@ -373,6 +373,45 @@
                  "width":30,
                  "x":1699,
                  "y":1302
+                }, 
+                {
+                 "gid":162,
+                 "height":32,
+                 "id":26,
+                 "name":"respawn 1",
+                 "properties":
+                    {
+                     "respawnNo":1
+                    },
+                 "propertytypes":
+                    {
+                     "respawnNo":"int"
+                    },
+                 "rotation":0,
+                 "type":"respawn",
+                 "visible":true,
+                 "width":32,
+                 "x":1332,
+                 "y":1322
+                }, 
+                {
+                 "height":35,
+                 "id":28,
+                 "name":"checkpoint 1",
+                 "properties":
+                    {
+                     "respawnNo":1
+                    },
+                 "propertytypes":
+                    {
+                     "respawnNo":"int"
+                    },
+                 "rotation":0,
+                 "type":"checkpoint",
+                 "visible":true,
+                 "width":127.5,
+                 "x":1731,
+                 "y":1321.33333333333
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -381,7 +420,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":26,
+ "nextobjectid":30,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tileheight":32,

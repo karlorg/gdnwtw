@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" nextobjectid="26">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" nextobjectid="30">
  <tileset firstgid="1" name="overworld" tilewidth="32" tileheight="32" tilecount="189" columns="21">
   <image source="images/overworld.png" width="672" height="288"/>
   <tile id="8">
@@ -625,7 +625,7 @@
 </data>
  </layer>
  <objectgroup name="Characters">
-  <object id="3" name="player" type="player" gid="47" x="1233.5" y="1735.83" width="32" height="32"/>
+  <object id="3" name="player" type="player" gid="47" x="1977.5" y="1330.16" width="32" height="32"/>
   <object id="4" name="kid" type="kid" gid="99" x="1787" y="2471" width="32" height="32"/>
   <object id="5" name="guard 1" type="guard" gid="143" x="1905.33" y="2023.67" width="32" height="32">
    <properties>
@@ -705,6 +705,16 @@
   <object id="25" name="trigger" type="arena trigger" x="1699" y="1302" width="30" height="84">
    <properties>
     <property name="locksArenaNo" type="int" value="4"/>
+   </properties>
+  </object>
+  <object id="26" name="respawn 1" type="respawn" gid="162" x="1332" y="1322" width="32" height="32">
+   <properties>
+    <property name="respawnNo" type="int" value="1"/>
+   </properties>
+  </object>
+  <object id="28" name="checkpoint 1" type="checkpoint" x="1731" y="1321.33" width="127.5" height="35">
+   <properties>
+    <property name="respawnNo" type="int" value="1"/>
    </properties>
   </object>
  </objectgroup>
