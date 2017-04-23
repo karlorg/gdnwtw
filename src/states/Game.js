@@ -149,7 +149,7 @@ export default class extends Phaser.State {
  	};
     }
 
-    makeGuard ({x, y, properties}) {
+    makeGuard ({x, y, name, properties}) {
 	const sprite = this.game.add.sprite(
  	    x, y, 'guard', 1
 	);
@@ -923,8 +923,18 @@ export default class extends Phaser.State {
 
     walkAround(npc) {
 	if (Math.abs(npc.destX - npc.x) < 2 && Math.abs(npc.destY - npc.y) < 2) {
-	    npc.destX = npc.homeX + game.rnd.between(-48, 48);
-	    npc.destY = npc.homeY + game.rnd.between(-48, 48);
+	    for (const n in [...Array(10).keys()]) {
+	        npc.destX = npc.homeX + game.rnd.between(-48, 48);
+	        npc.destY = npc.homeY + game.rnd.between(-48, 48);
+		if (this.isDestWalkableAndNotBlocked(npc.destX, npc.destY,
+					             npc.width, npc.height, npc.collisionOffsets)) {
+		    break;
+		}
+		if (n === 9) {
+		    // couldn't find a place to wander to
+		    return;
+		}
+	    }
 	}
 	const angle = Math.atan2(npc.destY - npc.y, npc.destX - npc.x);
 	let dx = npc.speed * Math.cos(angle);
