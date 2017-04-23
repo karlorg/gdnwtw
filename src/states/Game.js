@@ -106,6 +106,11 @@ export default class extends Phaser.State {
 
 	return {
 	    x, y,
+	    width: 32, height: 32,
+	    collisionOffsets: [{x: 0.3, y: 0.4},
+			       {x: 0.7, y: 0.4},
+			       {x: 0.3, y: 0.9},
+			       {x: 0.7, y: 0.9}],
 	    state: "idle",
 	    homeX: x, homeY: y,
 	    destX: x, destY: y,
@@ -634,8 +639,10 @@ export default class extends Phaser.State {
 	    npc.destY = npc.homeY + game.rnd.between(-48, 48);
 	}
 	const angle = Math.atan2(npc.destY - npc.y, npc.destX - npc.x);
-	const dx = npc.speed * Math.cos(angle);
-	const dy = npc.speed * Math.sin(angle);
+	let dx = npc.speed * Math.cos(angle);
+	let dy = npc.speed * Math.sin(angle);
+	({dx, dy} = this.adjustPathForObstacles(npc.x, npc.y, dx, dy, npc.width, npc.height,
+						npc.collisionOffsets));
 	npc.x += dx;
 	npc.y += dy;
 	if (dx < 0) {
@@ -687,12 +694,12 @@ export default class extends Phaser.State {
     }
 
     adjustPathForObstacles(x, y, dx, dy, w, h, offsets) {
-	if (this.isDestWalkableAndNotBlocked(x + dx, y + dy, w, h, offsets)) {
-	    return {dx, dy};
-	}
+	const dist = Math.sqrt(dx * dx + dy * dy);
+	const dxSign = dx < 0 ? -1 : 1;
+	const dySign = dy < 0 ? -1 : 1;
 	const toTry = Math.abs(dx) > Math.abs(dy)
-	      ? [{dx, dy: 0}, {dx: 0, dy}]
-	      : [{dx: 0, dy}, {dx, dy: 0}];
+	      ? [{dx, dy}, {dx: dist * dxSign, dy: 0}, {dx: 0, dy: dist * dySign}]
+	      : [{dx, dy}, {dx: 0, dy: dist * dySign}, {dx: dist * dxSign, dy: 0}];
 	for ({dx, dy} of toTry) {
 	    if (this.isDestWalkableAndNotBlocked(x + dx, y + dy, w, h, offsets)) {
 	        return {dx: dx, dy: dy};
