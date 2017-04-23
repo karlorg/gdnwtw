@@ -95,10 +95,12 @@ export default class extends Phaser.State {
 	    x, y,
 	    state: "normal",
 	    currentRespawn: null,
-	    maxHealth: 10,
-	    health: 10,
+	    maxHealth: 100,
+	    health: 100,
 	    healthRegenDelay: 3,  // seconds
 	    healthRegen: 25,  // per second
+	    invincibleDuration: 2,  // seconds
+	    timeInvincibleStarted: 0,
 	    lastDamageTime: 0,
 	    diedTime: 0,
 	    knockbackDirection: "none",
@@ -338,6 +340,7 @@ export default class extends Phaser.State {
 	        < game.time.totalElapsedSeconds()) {
 		if (this.player.state === "knocked back") {
 	            this.player.state = "normal";
+		    this.player.timeInvincibleStarted = game.time.totalElapsedSeconds();
 		    this.player.sprite.animations.play('stand down');
 	            return;
 		} else { // dying
@@ -568,7 +571,10 @@ export default class extends Phaser.State {
 
     checkContactDamage() {
 	if (this.player.state === "knocked back" || this.player.state === "dying"
-	   || this.player.state === "dead") {
+	    || this.player.state === "dead"
+	    || (this.player.timeInvincibleStarted + this.player.invincibleDuration
+		> game.time.totalElapsedSeconds())
+	   ) {
 	    return;
 	}
 	for (const npc of this.npcs) {
