@@ -84,15 +84,19 @@ export default class extends Phaser.State {
 	sprite.animations.add('run up', [23, 24, 25, 26], 4, true);
 	sprite.animations.add('knock up', [1]);
 	sprite.animations.add('knock down', [21]);
+	sprite.animations.add('dead up', [42]);
+	sprite.animations.add('dead down', [41]);
 	sprite.animations.play('run down');
 
 	return {
 	    x, y,
-	    maxHealth: 100,
-	    health: 100,
+	    maxHealth: 10,
+	    health: 10,
 	    healthRegenDelay: 3,  // seconds
 	    healthRegen: 25,  // per second
 	    lastDamageTime: 0,
+	    diedTime: 0,
+	    knockbackDirection: "none",
 	    knockbackSpeed: 4,
 	    knockbackDuration: 0.5,
 	    sprite
@@ -291,12 +295,29 @@ export default class extends Phaser.State {
 	let dx = 0;
 	let dy = 0;
 
-	if (this.player.state === "knocked back") {
+	if (this.player.state === "dead") {
+	    return;
+	}
+
+	if (this.player.state === "knocked back" || this.player.state === "dying") {
 	    if (this.player.lastDamageTime + this.player.knockbackDuration
 	        < game.time.totalElapsedSeconds()) {
-	        this.player.state = "normal";
-		this.player.sprite.animations.play('stand down');
-	        return;
+		if (this.player.state === "knocked back") {
+	            this.player.state = "normal";
+		    this.player.sprite.animations.play('stand down');
+	            return;
+		} else { // dying
+		    this.player.state = "dead";
+		    switch (this.player.knockbackDirection) {
+		    case "up":
+			this.player.sprite.animations.play("dead up");
+			break;
+		    case "down":
+			this.player.sprite.animations.play("dead down");
+			break;
+		    }
+		    return;
+		}
 	    }
 	    dx = this.player.knockbackSpeed * Math.cos(this.player.knockbackAngle);
 	    dy = this.player.knockbackSpeed * Math.sin(this.player.knockbackAngle);
@@ -351,7 +372,6 @@ export default class extends Phaser.State {
 	        this.player.sprite.animations.play('stand down');
 	    }
 	}
-
 
 	const offsets = [{x: 0.3, y: 0.35},
 			 {x: 0.7, y: 0.35},
@@ -491,7 +511,8 @@ export default class extends Phaser.State {
     }
 
     checkContactDamage() {
-	if (this.player.state === "knocked back") {
+	if (this.player.state === "knocked back" || this.player.state === "dying"
+	   || this.player.state === "dead") {
 	    return;
 	}
 	for (const npc of this.npcs) {
@@ -503,8 +524,10 @@ export default class extends Phaser.State {
 		    Math.atan2(this.player.y - npc.y, this.player.x - npc.x);
 		if (angle > 0 && angle < TAU / 2) {
 		    this.player.sprite.animations.play('knock down');
+		    this.player.knockbackDirection = "down";
 		} else {
 		    this.player.sprite.animations.play('knock up');
+		    this.player.knockbackDirection = "up";
 		}
 		this.player.state = "knocked back";
 		this.damagePlayer(npc.contactDamage);
@@ -521,7 +544,8 @@ export default class extends Phaser.State {
 	this.player.health -= damage;
 	if (this.player.health < 0) {
 	    this.player.health = 0;
-	    console.log("dead!");
+	    this.player.state = "dying";
+	    this.player.diedTime = game.time.totalElapsedSeconds();
 	}
     }
 
