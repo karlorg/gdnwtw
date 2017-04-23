@@ -30,9 +30,17 @@ export default class extends Phaser.State {
 	this.frillsLayer = this.tilemap.createLayer('Frills');
 
 	this.npcs = [];
+	this.arenaTriggers = [];
+	this.arenaStates = [];
 	this.createEntitiesFromJsonMap(level1jsonMap);
 	this.walkableIndices = this.getTileIndices(this.tilemap, 'walkable');
 	this.blockingIndices = this.getTileIndices(this.tilemap, 'blocks');
+	this.gateClosedIndices = [];
+	[this.gateClosedIndices[1]] = this.getTileIndices(this.tilemap, 'gateClosed', 1);
+	[this.gateClosedIndices[2]] = this.getTileIndices(this.tilemap, 'gateClosed', 2);
+	this.gateOpenIndices = [];
+	[this.gateOpenIndices[1]] = this.getTileIndices(this.tilemap, 'gateOpen', 1);
+	[this.gateOpenIndices[2]] = this.getTileIndices(this.tilemap, 'gateOpen', 2);
 
 	this.camera.follow(this.player.sprite);
 
@@ -45,11 +53,16 @@ export default class extends Phaser.State {
 
     render () {
         if (__DEV__) {
+	    // for (const t of this.arenaTriggers) {
+	    //     this.game.debug.geom(new Phaser.Rectangle(t.x, t.y, t.width, t.height),
+	    // 			     'rgba(255,0,0,0.5)');
+	    // }
         }
     }
 
     update() {
 	this.controlPlayer();
+	this.checkArenaTriggers();
 	this.updateWorld();
 	for (const npc of this.npcs) {
 	    npc.updateFunc.call(this, npc);
@@ -102,7 +115,7 @@ export default class extends Phaser.State {
  	};
     }
 
-    makeGuard ({x, y}) {
+    makeGuard ({x, y, properties}) {
 	const sprite = this.game.add.sprite(
  	    x, y, 'guard', 1
 	);
@@ -110,6 +123,13 @@ export default class extends Phaser.State {
 	sprite.animations.add('walk right', [10], 2, true);
 	sprite.animations.add('fall left', [20, 21], 2, true);
 	sprite.animations.add('fall right', [30, 31], 1, false);
+
+	if (properties !== undefined) {
+	    const {unlocksArenaNo} = properties;
+	    if (unlocksArenaNo !== undefined && unlocksArenaNo !== null) {
+	        this.addArenaUnlocker(unlocksArenaNo);
+	    }
+	}
 
 	return {
 	    x, y,
@@ -125,6 +145,26 @@ export default class extends Phaser.State {
 	    updateFunc: this.updateGuard,
 	    sprite
  	};
+    }
+
+    makeArenaTrigger({x, y, height, width, properties: {locksArenaNo}}) {
+	return {
+	    x, y, width, height, locksArenaNo
+	};
+    }
+
+    makeArenaState() {
+	return {
+	    state: "not triggered",
+	    unlockersRemaining: 0
+	};
+    }
+
+    addArenaUnlocker(no) {
+	if (this.arenaStates[no] === undefined) {
+	    this.arenaStates[no] = this.makeArenaState();
+	}
+	this.arenaStates[no].unlockersRemaining += 1;
     }
 
     makeWorld (player) {
@@ -156,6 +196,11 @@ export default class extends Phaser.State {
 	const guards = this.getObjectsFromJsonMap(jsonMap, {type: 'guard'});
 	for (const guard of guards) {
 	    this.npcs.push(this.makeGuard(guard));
+	}
+
+	const triggers = this.getObjectsFromJsonMap(jsonMap, {type: 'arena trigger'});
+	for (const trigger of triggers) {
+	    this.arenaTriggers.push(this.makeArenaTrigger(trigger));
 	}
     }
 
@@ -242,6 +287,31 @@ export default class extends Phaser.State {
 	if (tile === null) { return true };
 	const obstaclesIndex = tile.index;
 	return this.blockingIndices.indexOf(obstaclesIndex) >= 0;
+    }
+
+    checkArenaTriggers() {
+	for (const trigger of this.arenaTriggers) {
+	    const tRect = new Phaser.Rectangle(
+		trigger.x, trigger.y, trigger.width, trigger.height);
+	    if (Phaser.Rectangle.intersects(this.player.sprite, tRect)) {
+		const arenaNo = trigger.locksArenaNo;
+		const arena = this.arenaStates[arenaNo];
+		if (arena.state === "not triggered") {
+		    arena.state = "locked";
+		    this.closeAllGates();
+		}
+	    }
+	}
+    }
+
+    closeAllGates() {
+	this.tilemap.forEach((tile) => {
+	    const openIndex = this.gateOpenIndices.indexOf(tile.index);
+	    if (openIndex >= 0) {
+		const closed = this.gateClosedIndices[openIndex];
+		this.tilemap.putTile(closed, tile.x, tile.y, "Obstacles");
+	    }
+	}, this, 0, 0, this.tilemap.width, this.tilemap.height, "Obstacles");
     }
 
     updateWorld() {
