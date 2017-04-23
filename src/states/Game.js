@@ -691,6 +691,7 @@ export default class extends Phaser.State {
 	    if (Phaser.Rectangle.intersects(npc.sprite, this.player.sprite)) {
 		const angle = this.player.knockbackAngle =
 		    Math.atan2(this.player.y - npc.y, this.player.x - npc.x);
+		this.knockbackPlayer(angle);
 		this.damagePlayer(npc.contactDamage);
 		if (npc.hasOwnProperty("tauntDuration")) {
 		    npc.tauntStartTime = game.time.totalElapsedSeconds();
