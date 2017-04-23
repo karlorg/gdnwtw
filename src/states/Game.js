@@ -155,6 +155,46 @@ export default class extends Phaser.State {
  	};
     }
 
+    makeChaser ({x, y, properties}) {
+	const sprite = this.game.add.sprite(
+ 	    x, y, 'chaser', 1
+	);
+	sprite.animations.add('walk left', [0], 2, true);
+	sprite.animations.add('walk right', [10], 2, true);
+	sprite.animations.add('fall left', [20, 21], 2, true);
+	sprite.animations.add('fall right', [30, 31], 1, false);
+	sprite.animations.add('idle', [40, 41], 1.5, true);
+	sprite.animations.play('idle');
+
+	let unlocksArenaNo = undefined;
+	if (properties !== undefined) {
+	    unlocksArenaNo = properties.unlocksArenaNo;
+	    if (unlocksArenaNo !== undefined && unlocksArenaNo !== null) {
+	        this.unlocksArenaNo = unlocksArenaNo;
+	        this.addArenaUnlocker(unlocksArenaNo);
+	    }
+	}
+
+	return {
+	    x, y,
+	    width: 32, height: 32,
+	    state: "idle",
+	    collisionOffsets: [{x: 0.1, y: 0.1},
+			       {x: 0.9, y: 0.1},
+			       {x: 0.1, y: 0.9},
+			       {x: 0.9, y: 0.9}],
+	    speed: playerWalkSpeed * 1.7,
+	    runSpeed: playerWalkSpeed * 1.7,
+	    aggroRange: playerWidth * 10,
+	    contactDamage: 15,
+	    tauntStartTime: 0,
+	    tauntDuration: 1,
+	    unlocksArenaNo,
+	    updateFunc: this.updateChaser,
+	    sprite
+ 	};
+    }
+
     makeArenaTrigger({x, y, height, width, properties: {locksArenaNo}}) {
 	return {
 	    x, y, width, height, locksArenaNo
@@ -213,6 +253,11 @@ export default class extends Phaser.State {
 	const guards = this.getObjectsFromJsonMap(jsonMap, {type: 'guard'});
 	for (const guard of guards) {
 	    this.npcs.push(this.makeGuard(guard));
+	}
+
+	const chasers = this.getObjectsFromJsonMap(jsonMap, {type: 'chaser'});
+	for (const chaser of chasers) {
+	    this.npcs.push(this.makeChaser(chaser));
 	}
 
 	const triggers = this.getObjectsFromJsonMap(jsonMap, {type: 'arena trigger'});
@@ -486,6 +531,25 @@ export default class extends Phaser.State {
 	guard.sprite.y = guard.y;
     }
 
+    updateChaser(npc) {
+	switch (npc.state) {
+	case "idle":
+	    this.checkChaserAggro(npc);
+	    this.checkBonk(npc);
+	    break;
+	case "aggro":
+	    this.updateChaserAggro(npc);
+	    this.checkBonk(npc);
+	    break;
+	case "taunting":
+	    this.updateTaunting(npc);
+	    this.checkBonk(npc);
+	    break;
+	}
+	npc.sprite.x = npc.x;
+	npc.sprite.y = npc.y;
+    }
+
     checkAggro(guard) {
 	const dist = Math.sqrt(
 	    (guard.homeX - this.player.x) * (guard.homeX - this.player.x) +
@@ -493,6 +557,16 @@ export default class extends Phaser.State {
 	);
 	if (dist < guard.aggroRange) {
 	    guard.state = "aggro";
+	}
+    }
+
+    checkChaserAggro(npc) {
+	const dist = Math.sqrt(
+	    (npc.x - this.player.x) * (npc.x - this.player.x) +
+		(npc.y - this.player.y) * (npc.y - this.player.y)
+	);
+	if (dist < npc.aggroRange) {
+	    npc.state = "aggro";
 	}
     }
 
@@ -515,6 +589,25 @@ export default class extends Phaser.State {
 	guard.y += dy;
     }
 
+    updateChaserAggro(npc) {
+	const dist = Math.sqrt(
+	    (npc.x - this.player.x) * (npc.x - this.player.x) +
+		(npc.y - this.player.y) * (npc.y - this.player.y)
+	);
+	if (dist > npc.aggroRange) {
+	    npc.state = "idle";
+	    return;
+	}
+	
+	const angle = Math.atan2(this.player.y - npc.y, this.player.x - npc.x);
+	let dx = npc.runSpeed * Math.cos(angle);
+	let dy = npc.runSpeed * Math.sin(angle);
+	({dx, dy} = this.adjustPathForObstacles(npc.x, npc.y, dx, dy,
+						npc.width, npc.height, npc.collisionOffsets));
+	npc.x += dx;
+	npc.y += dy;
+    }
+
     updateTaunting(npc) {
 	if (npc.tauntStartTime + npc.tauntDuration < game.time.totalElapsedSeconds()) {
 	    npc.state = "idle";
@@ -530,7 +623,7 @@ export default class extends Phaser.State {
     getBonked(npc) {
 	npc.state = "bonked";
 	npc.sprite.animations.play("fall right");
-	if (npc.hasOwnProperty("unlocksArenaNo")) {
+	if (npc.hasOwnProperty("unlocksArenaNo") && npc.unlocksArenaNo !== undefined) {
 	    this.countUnlocker(npc.unlocksArenaNo);
 	}
     }
