@@ -135,7 +135,12 @@ export default class extends Phaser.State {
 
 	return {
 	    x, y,
+	    width: 32, height: 32,
 	    state: "idle",
+	    collisionOffsets: [{x: 0.1, y: 0.1},
+			       {x: 0.9, y: 0.1},
+			       {x: 0.1, y: 0.9},
+			       {x: 0.9, y: 0.9}],
 	    homeX: x, homeY: y,
 	    destX: x, destY: y,
 	    speed: 0.7,
@@ -229,8 +234,8 @@ export default class extends Phaser.State {
     }
 
     controlPlayer() {
-	let newX = this.player.x;
-	let newY = this.player.y;
+	let dx = 0;
+	let dy = 0;
 
 	if (this.player.state === "knocked back") {
 	    if (this.player.lastDamageTime + this.player.knockbackDuration
@@ -239,8 +244,8 @@ export default class extends Phaser.State {
 		this.player.sprite.animations.play('stand down');
 	        return;
 	    }
-	    newX = this.player.x + this.player.knockbackSpeed * Math.cos(this.player.knockbackAngle);
-	    newY = this.player.y + this.player.knockbackSpeed * Math.sin(this.player.knockbackAngle);
+	    dx = this.player.knockbackSpeed * Math.cos(this.player.knockbackAngle);
+	    dy = this.player.knockbackSpeed * Math.sin(this.player.knockbackAngle);
 	} else {
 	    
 	    let kbd = this.game.input.keyboard;
@@ -258,16 +263,16 @@ export default class extends Phaser.State {
 	    const speed = isRunPressed ? playerRunSpeed : playerWalkSpeed;
 
 	    if (isLeftPressed) {
-		newX -= speed;
+		dx -= speed;
 	    }
 	    if (isRightPressed) {
-		newX += speed;
+		dx += speed;
 	    }
 	    if (isUpPressed) {
-		newY -= speed;
+		dy -= speed;
 	    }
 	    if (isDownPressed) {
-		newY += speed;
+		dy += speed;
 	    }
 	}
 
@@ -275,16 +280,11 @@ export default class extends Phaser.State {
 			 {x: 0.7, y: 0.35},
 			 {x: 0.3, y: 0.9},
 			 {x: 0.7, y: 0.9}];
-	let okToMove = true;
-	for (const {x, y} of offsets) {
-	    okToMove = okToMove
-	        && this.isPosnWalkable(newX + x * playerWidth, newY + y * playerHeight)
-		&& !this.isPosnBlocked(newX + x * playerWidth, newY + y * playerHeight);
-	}
-	if (okToMove) {
-	    this.player.x = newX;
-	    this.player.y = newY;
-	}
+	({dx, dy} =
+	    this.adjustPathForObstacles(this.player.x, this.player.y, dx, dy,
+					playerWidth, playerHeight, offsets));
+	this.player.x += dx;
+	this.player.y += dy;
     }
 
     isPosnWalkable(x, y) {
@@ -367,12 +367,7 @@ export default class extends Phaser.State {
 			 {x: 0.9, y: 0.1},
 			 {x: 0.1, y: 0.9},
 			 {x: 0.9, y: 0.9}];
-	let okToMove = true;
-	// for (const {x, y} of offsets) {
-	//     okToMove = okToMove
-	// 	&& !this.isPosnBlocked(newX + x * worldWidth, newY + y * worldHeight);
-	// }
-	if (okToMove) {
+	if (true) {  // used to check collision here
 	    this.world.vx = newX - this.world.x;
 	    this.world.vy = newX - this.world.y;
 	    this.world.x = newX;
@@ -506,14 +501,18 @@ export default class extends Phaser.State {
 	    (guard.homeX - this.player.x) * (guard.homeX - this.player.x) +
 		(guard.homeY - this.player.y) * (guard.homeY - this.player.y)
 	);
-	if (dist > guard.aggroRange) {
+	if (dist > guard.aggroRange * 1.3) {
 	    guard.state = "idle";
 	    return;
 	}
 	
 	const angle = Math.atan2(this.player.y - guard.y, this.player.x - guard.x);
-	guard.x += guard.runSpeed * Math.cos(angle);
-	guard.y += guard.runSpeed * Math.sin(angle);
+	let dx = guard.runSpeed * Math.cos(angle);
+	let dy = guard.runSpeed * Math.sin(angle);
+	({dx, dy} = this.adjustPathForObstacles(guard.x, guard.y, dx, dy,
+						guard.width, guard.height, guard.collisionOffsets));
+	guard.x += dx;
+	guard.y += dy;
     }
 
     updateTaunting(npc) {
@@ -578,6 +577,35 @@ export default class extends Phaser.State {
 	    }
 	}
 	return result;
+    }
+
+    isDestWalkableAndNotBlocked(x, y, w, h,
+				offsets=[{x: 0, y: 0},
+					 {x: 0, y: 1},
+					 {x: 1, y: 0},
+					 {x: 1, y: 1}]) {
+	let okToMove = true;
+	for (const {x: xoff, y: yoff} of offsets) {
+	    okToMove = okToMove
+		&& this.isPosnWalkable(x + xoff * w, y + yoff * h)
+		&& !this.isPosnBlocked(x + xoff * w, y + yoff * h);
+	}
+	return okToMove;
+    }
+
+    adjustPathForObstacles(x, y, dx, dy, w, h, offsets) {
+	if (this.isDestWalkableAndNotBlocked(x + dx, y + dy, w, h, offsets)) {
+	    return {dx, dy};
+	}
+	const toTry = Math.abs(dx) > Math.abs(dy)
+	      ? [{dx, dy: 0}, {dx: 0, dy}]
+	      : [{dx: 0, dy}, {dx, dy: 0}];
+	for ({dx, dy} of toTry) {
+	    if (this.isDestWalkableAndNotBlocked(x + dx, y + dy, w, h, offsets)) {
+	        return {dx: dx, dy: dy};
+	    }
+	}
+	return {dx: 0, dy: 0};
     }
 
 }
