@@ -124,9 +124,11 @@ export default class extends Phaser.State {
 	sprite.animations.add('fall left', [20, 21], 2, true);
 	sprite.animations.add('fall right', [30, 31], 1, false);
 
+	let unlocksArenaNo = undefined;
 	if (properties !== undefined) {
-	    const {unlocksArenaNo} = properties;
+	    unlocksArenaNo = properties.unlocksArenaNo;
 	    if (unlocksArenaNo !== undefined && unlocksArenaNo !== null) {
+	        this.unlocksArenaNo = unlocksArenaNo;
 	        this.addArenaUnlocker(unlocksArenaNo);
 	    }
 	}
@@ -142,6 +144,7 @@ export default class extends Phaser.State {
 	    contactDamage: 15,
 	    tauntStartTime: 0,
 	    tauntDuration: 1,
+	    unlocksArenaNo,
 	    updateFunc: this.updateGuard,
 	    sprite
  	};
@@ -165,6 +168,15 @@ export default class extends Phaser.State {
 	    this.arenaStates[no] = this.makeArenaState();
 	}
 	this.arenaStates[no].unlockersRemaining += 1;
+    }
+
+    countUnlocker(no) {
+	this.arenaStates[no].unlockersRemaining -= 1;
+	console.log("" + this.arenaStates[no].unlockersRemaining + " left");
+	if (this.arenaStates[no].unlockersRemaining <= 0) {
+	    this.arenaStates[no].state = "finished";
+	    this.openAllGates();
+	}
     }
 
     makeWorld (player) {
@@ -310,6 +322,16 @@ export default class extends Phaser.State {
 	    if (openIndex >= 0) {
 		const closed = this.gateClosedIndices[openIndex];
 		this.tilemap.putTile(closed, tile.x, tile.y, "Obstacles");
+	    }
+	}, this, 0, 0, this.tilemap.width, this.tilemap.height, "Obstacles");
+    }
+
+    openAllGates() {
+	this.tilemap.forEach((tile) => {
+	    const closedIndex = this.gateClosedIndices.indexOf(tile.index);
+	    if (closedIndex >= 0) {
+		const open = this.gateOpenIndices[closedIndex];
+		this.tilemap.putTile(open, tile.x, tile.y, "Obstacles");
 	    }
 	}, this, 0, 0, this.tilemap.width, this.tilemap.height, "Obstacles");
     }
@@ -509,6 +531,9 @@ export default class extends Phaser.State {
     getBonked(npc) {
 	npc.state = "bonked";
 	npc.sprite.animations.play("fall right");
+	if (npc.hasOwnProperty("unlocksArenaNo")) {
+	    this.countUnlocker(npc.unlocksArenaNo);
+	}
     }
 
     walkAround(npc) {
