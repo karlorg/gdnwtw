@@ -517,9 +517,14 @@ export default class extends Phaser.State {
 
     isPosnWalkable(x, y) {
 	const tile = this.tilemap.getTileWorldXY(x, y, undefined, undefined, "Ground", true);
+	// have to check Frills layer too as bridge transition tiles live there
+	const fTile = this.tilemap.getTileWorldXY(x, y, undefined, undefined, "Frills", true);
 	if (tile === null) { return false };
+	if (fTile === null) { return false };
 	const groundIndex = tile.index;
-	return this.walkableIndices.indexOf(groundIndex) >= 0;
+	const frillsIndex = fTile.index;
+	return (this.walkableIndices.indexOf(groundIndex) >= 0
+		|| this.walkableIndices.indexOf(frillsIndex) >= 0);
     }
 
     isPosnBlocked(x, y) {
