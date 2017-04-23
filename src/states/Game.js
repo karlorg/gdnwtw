@@ -224,6 +224,42 @@ export default class extends Phaser.State {
  	};
     }
 
+    makeShooter ({x, y, properties}) {
+	const sprite = this.game.add.sprite(
+ 	    x, y, 'shooter', 1
+	);
+	sprite.animations.add('idle', [0, 1], 2, true);
+	sprite.animations.add('shoot', [10, 11], 1, true);
+	sprite.animations.play('idle')
+
+	let unlocksArenaNo = undefined;
+	if (properties !== undefined) {
+	    unlocksArenaNo = properties.unlocksArenaNo;
+	    if (unlocksArenaNo !== undefined && unlocksArenaNo !== null) {
+	        this.unlocksArenaNo = unlocksArenaNo;
+	        this.addArenaUnlocker(unlocksArenaNo);
+	    }
+	}
+
+	return {
+	    x, y,
+	    width: 32, height: 32,
+	    state: "idle",
+	    collisionOffsets: [{x: 0.1, y: 0.1},
+			       {x: 0.9, y: 0.1},
+			       {x: 0.1, y: 0.9},
+			       {x: 0.9, y: 0.9}],
+	    speed: playerWalkSpeed,
+	    aggroRange: playerWidth * 10,
+	    contactDamage: 10,
+	    tauntStartTime: 0,
+	    tauntDuration: 1,
+	    unlocksArenaNo,
+	    updateFunc: () => {},
+	    sprite
+ 	};
+    }
+
     makeArenaTrigger({x, y, height, width, properties: {locksArenaNo}}) {
 	return {
 	    x, y, width, height, locksArenaNo
@@ -298,6 +334,11 @@ export default class extends Phaser.State {
 	const chasers = this.getObjectsFromJsonMap(jsonMap, {type: 'chaser'});
 	for (const chaser of chasers) {
 	    this.npcs.push(this.makeChaser(chaser));
+	}
+
+	const shooters = this.getObjectsFromJsonMap(jsonMap, {type: 'shooter'});
+	for (const shooter of shooters) {
+	    this.npcs.push(this.makeShooter(shooter));
 	}
 
 	const triggers = this.getObjectsFromJsonMap(jsonMap, {type: 'arena trigger'});

@@ -47,8 +47,8 @@
                  "type":"player",
                  "visible":true,
                  "width":32,
-                 "x":1977.49666666667,
-                 "y":1330.16333333333
+                 "x":617.496666666667,
+                 "y":2369.16333333333
                 }, 
                 {
                  "gid":99,
@@ -567,6 +567,18 @@
                  "width":32,
                  "x":1230,
                  "y":2070
+                }, 
+                {
+                 "gid":120,
+                 "height":32,
+                 "id":39,
+                 "name":"shooter",
+                 "rotation":0,
+                 "type":"shooter",
+                 "visible":true,
+                 "width":32,
+                 "x":770,
+                 "y":2298
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -575,7 +587,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":39,
+ "nextobjectid":40,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tileheight":32,
