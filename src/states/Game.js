@@ -27,6 +27,7 @@ export default class extends Phaser.State {
 	this.groundLayer = this.tilemap.createLayer('Ground');
 	this.groundLayer.resizeWorld();
 	this.obstacleLayer = this.tilemap.createLayer('Obstacles');
+	this.frillsLayer = this.tilemap.createLayer('Frills');
 
 	this.npcs = [];
 	this.createEntitiesFromJsonMap(level1jsonMap);
@@ -60,6 +61,13 @@ export default class extends Phaser.State {
     }
 
     makePlayer ({x, y}) {
+	const sprite = this.game.add.sprite(
+	    x, y, 'player', 0
+	);
+	sprite.animations.add('stand down', [0]);
+	sprite.animations.add('knock up', [1]);
+	sprite.animations.add('knock down', [21]);
+
 	return {
 	    x, y,
 	    maxHealth: 100,
@@ -67,12 +75,10 @@ export default class extends Phaser.State {
 	    healthRegenDelay: 3,  // seconds
 	    healthRegen: 25,  // per second
 	    lastDamageTime: 0,
-	    knockbackSpeed: 3.5,
-	    knockbackDuration: 0.7,
-	    sprite: this.game.add.sprite(
-	    	x, y, 'player', 1
-	    )
-	};
+	    knockbackSpeed: 4,
+	    knockbackDuration: 0.5,
+	    sprite
+ 	};
     }
 
     makeKid ({x, y}) {
@@ -114,6 +120,8 @@ export default class extends Phaser.State {
 	    runSpeed: playerWalkSpeed * 1.7,
 	    aggroRange: worldPreferredOrbit * 1.7,
 	    contactDamage: 15,
+	    tauntStartTime: 0,
+	    tauntDuration: 1,
 	    updateFunc: this.updateGuard,
 	    sprite
  	};
@@ -171,6 +179,7 @@ export default class extends Phaser.State {
 	    if (this.player.lastDamageTime + this.player.knockbackDuration
 	        < game.time.totalElapsedSeconds()) {
 	        this.player.state = "normal";
+		this.player.sprite.animations.play('stand down');
 	        return;
 	    }
 	    newX = this.player.x + this.player.knockbackSpeed * Math.cos(this.player.knockbackAngle);
@@ -245,7 +254,7 @@ export default class extends Phaser.State {
 	const prefDist = worldPreferredOrbit;
 	let newDist = dist;
 	if (newDist > prefDist) {
-	    let catchUp = Math.min(0.01 * (newDist - prefDist), 2);
+	    let catchUp = Math.min(0.05 * (newDist - prefDist), 2);
 	    newDist -= catchUp;
 	    if (newDist < prefDist) {
 		newDist = prefDist;
@@ -326,15 +335,24 @@ export default class extends Phaser.State {
 		continue;
 	    }
 	    if (Phaser.Rectangle.intersects(npc.sprite, this.player.sprite)) {
-		this.player.knockbackAngle = Math.atan2(this.player.y - npc.y, this.player.x - npc.x);
+		const angle = this.player.knockbackAngle =
+		    Math.atan2(this.player.y - npc.y, this.player.x - npc.x);
+		if (angle > 0 && angle < TAU / 2) {
+		    this.player.sprite.animations.play('knock down');
+		} else {
+		    this.player.sprite.animations.play('knock up');
+		}
 		this.player.state = "knocked back";
 		this.damagePlayer(npc.contactDamage);
+		if (npc.hasOwnProperty("tauntDuration")) {
+		    npc.tauntStartTime = game.time.totalElapsedSeconds();
+		    npc.state = "taunting";
+		}
 	    }
 	}
     }
 
     damagePlayer(damage) {
-	console.log("damage");
 	this.player.lastDamageTime = game.time.totalElapsedSeconds();
 	this.player.health -= damage;
 	if (this.player.health < 0) {
@@ -372,6 +390,10 @@ export default class extends Phaser.State {
 	    this.updateAggro(guard);
 	    this.checkBonk(guard);
 	    break;
+	case "taunting":
+	    this.updateTaunting(guard);
+	    this.checkBonk(guard);
+	    break;
 	}
 	guard.sprite.x = guard.x;
 	guard.sprite.y = guard.y;
@@ -400,6 +422,12 @@ export default class extends Phaser.State {
 	const angle = Math.atan2(this.player.y - guard.y, this.player.x - guard.x);
 	guard.x += guard.runSpeed * Math.cos(angle);
 	guard.y += guard.runSpeed * Math.sin(angle);
+    }
+
+    updateTaunting(npc) {
+	if (npc.tauntStartTime + npc.tauntDuration < game.time.totalElapsedSeconds()) {
+	    npc.state = "idle";
+	}
     }
 
     checkBonk(npc) {
