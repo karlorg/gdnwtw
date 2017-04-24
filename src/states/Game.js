@@ -24,12 +24,15 @@ export default class extends Phaser.State {
 	game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
 
 	this.bangAudio = game.add.audio('bang');
-	this.idleAudio = {guard: [], chaser: []};
+	this.idleAudio = {guard: [], chaser: [], shooter: []};
         for (const i of [...Array(7).keys()]) {
 	    this.idleAudio.guard.push(game.add.audio(`guard idle ${i}`));
         }
         for (const i of [...Array(8).keys()]) {
 	    this.idleAudio.chaser.push(game.add.audio(`chaser idle ${i}`));
+        }
+        for (const i of [...Array(10).keys()]) {
+	    this.idleAudio.shooter.push(game.add.audio(`shooter idle ${i}`));
         }
 	this.guardAttackAudio = [];
         for (const i of [...Array(3).keys()]) {
@@ -39,12 +42,23 @@ export default class extends Phaser.State {
         for (const i of [...Array(5).keys()]) {
 	    this.chaserAttackAudio.push(game.add.audio(`chaser attack ${i}`));
         }
-	this.painAudio = {guard: [], chaser: []};
+	this.shooterPrepareAudio = [];
+        for (const i of [...Array(5).keys()]) {
+	    this.shooterPrepareAudio.push(game.add.audio(`shooter prepare ${i}`));
+        }
+	this.shooterAttackAudio = [];
+        for (const i of [...Array(5).keys()]) {
+	    this.shooterAttackAudio.push(game.add.audio(`shooter attack ${i}`));
+        }
+	this.painAudio = {guard: [], chaser: [], shooter: []};
         for (const i of [...Array(5).keys()]) {
 	    this.painAudio.guard.push(game.add.audio(`guard pain ${i}`));
         }
         for (const i of [...Array(4).keys()]) {
 	    this.painAudio.chaser.push(game.add.audio(`chaser pain ${i}`));
+        }
+        for (const i of [...Array(4).keys()]) {
+	    this.painAudio.shooter.push(game.add.audio(`shooter pain ${i}`));
         }
 	this.playerPainAudio = [];
         for (const i of [...Array(6).keys()]) {
@@ -313,6 +327,14 @@ export default class extends Phaser.State {
 			       {x: 0.9, y: 0.1},
 			       {x: 0.1, y: 0.9},
 			       {x: 0.9, y: 0.9}],
+
+	    lastPlayedIdleAudio: 0,
+	    idleAudioMinDelay: 0.2,
+	    idleAudioMaxDelay: 0.5,
+	    idleAudioVolume: 0.3,
+	    currentIdleAudioDelay: 1,
+	    lastPlayedAttackSound: 0,
+
 	    homeX: x, homeY: y,
 	    destX: x, destY: y,
 	    speed: playerWalkSpeed,
@@ -337,6 +359,7 @@ export default class extends Phaser.State {
     updateShooter(npc) {
 	switch (npc.state) {
 	case "idle":
+	    this.processIdleSounds(npc, "shooter");
 	    this.walkAround(npc);
 	    this.checkShooterAggro(npc);
 	    this.checkBonk(npc);
@@ -898,6 +921,10 @@ export default class extends Phaser.State {
 	);
 	if (dist < npc.aggroRange) {
 	    npc.sprite.animations.play("prepare shot");
+	    const sound = game.rnd.pick(this.shooterPrepareAudio);
+	    sound.play();
+	    npc.lastPlayedAttackSound = game.time.totalElapsedSeconds();
+	    npc.currentAttackSound = sound;
 	    npc.timeStartedPreparingShot = game.time.totalElapsedSeconds();
 	    npc.state = "preparing shot";
 	}
@@ -962,6 +989,10 @@ export default class extends Phaser.State {
 	if (npc.timeStartedPreparingShot + npc.shotPrepareTime < game.time.totalElapsedSeconds()) {
 	    this.shootAt(npc, this.player);
 	    npc.sprite.animations.play("shoot");
+	    const sound = game.rnd.pick(this.shooterAttackAudio);
+	    sound.play();
+	    npc.lastPlayedAttackSound = game.time.totalElapsedSeconds();
+	    npc.currentAttackSound = sound;
 	    npc.timeStartedRecovery = game.time.totalElapsedSeconds();
 	    npc.state = "recovering";
 	}
@@ -1127,7 +1158,10 @@ export default class extends Phaser.State {
 	    return;
 	}
 	const sound = game.rnd.pick(this.idleAudio[type]);
-	const volume = 1 - ((dist - worldPreferredOrbit) / (worldPreferredOrbit * 2.5));
+	let volume = 1 - ((dist - worldPreferredOrbit) / (worldPreferredOrbit * 2.5));
+	if (npc.hasOwnProperty("idleAudioVolume")) {
+	    volume *= npc.idleAudioVolume;
+	}
 	sound.play('', 0, volume);
 	npc.lastPlayedIdleAudio = game.time.totalElapsedSeconds();
 	npc.currentIdleAudioDelay = game.rnd.realInRange(npc.idleAudioMinDelay, npc.idleAudioMaxDelay);

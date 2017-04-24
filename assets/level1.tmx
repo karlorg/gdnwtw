@@ -794,7 +794,7 @@
 </data>
  </layer>
  <objectgroup name="Characters">
-  <object id="3" name="player" type="player" gid="47" x="1339.28" y="1329.5" width="32" height="32"/>
+  <object id="3" name="player" type="player" gid="47" x="303.285" y="199.5" width="32" height="32"/>
   <object id="4" name="kid" type="kid" gid="99" x="1787" y="2471" width="32" height="32"/>
   <object id="5" name="guard 5" type="guard" gid="143" x="1905.33" y="2023.67" width="32" height="32">
    <properties>

@@ -43,6 +43,18 @@ export default class extends Phaser.State {
       for (const i of [...Array(4).keys()]) {
 	  this.load.audio(`chaser pain ${i}`, `assets/sound/chaser pain ${i}.ogg`);
       }
+      for (const i of [...Array(10).keys()]) {
+	  this.load.audio(`shooter idle ${i}`, `assets/sound/slurp${i}.ogg`);
+      }
+      for (const i of [...Array(5).keys()]) {
+	  this.load.audio(`shooter prepare ${i}`, `assets/sound/shooter prepare ${i}.ogg`);
+      }
+      for (const i of [...Array(5).keys()]) {
+	  this.load.audio(`shooter attack ${i}`, `assets/sound/shooter attack ${i}.ogg`);
+      }
+      for (const i of [...Array(5).keys()]) {
+	  this.load.audio(`shooter pain ${i}`, `assets/sound/shooter pain ${i}.ogg`);
+      }
       for (const i of [...Array(6).keys()]) {
 	  this.load.audio(`player pain ${i}`, `assets/sound/player pain ${i}.ogg`);
       }
