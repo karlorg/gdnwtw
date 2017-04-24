@@ -23,6 +23,8 @@ export default class extends Phaser.State {
 	this.game.stage.backgroundColor = '#787878';
 	game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
 
+	this.bangAudio = game.add.audio('bang');
+
 	this.tilemap = this.game.add.tilemap('level1');
 	this.tilemap.addTilesetImage('overworld', 'overworld');
 	this.groundLayer = this.tilemap.createLayer('Ground');
@@ -761,9 +763,7 @@ export default class extends Phaser.State {
 	kid.sprite.x = kid.x;
 	kid.sprite.y = kid.y;
 
-	if (Phaser.Rectangle.intersects(kid.sprite, this.world.sprite)) {
-	    this.getBonked(kid);
-	}
+	this.checkBonk(kid);
     }
 
     updateGuard(guard) {
@@ -919,6 +919,7 @@ export default class extends Phaser.State {
 
     checkBonk(npc) {
 	if (Phaser.Rectangle.intersects(npc.sprite, this.world.sprite)) {
+	    this.bangAudio.play();
 	    this.getBonked(npc);
 	}
     }
