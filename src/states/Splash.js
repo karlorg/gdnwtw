@@ -43,6 +43,10 @@ export default class extends Phaser.State {
       for (const i of [...Array(4).keys()]) {
 	  this.load.audio(`chaser pain ${i}`, `assets/sound/chaser pain ${i}.ogg`);
       }
+      for (const i of [...Array(6).keys()]) {
+	  this.load.audio(`player pain ${i}`, `assets/sound/player pain ${i}.ogg`);
+      }
+      this.load.audio("player death 0", "assets/sound/player death 0.ogg");
   }
 
   create () {

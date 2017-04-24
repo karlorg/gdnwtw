@@ -46,6 +46,11 @@ export default class extends Phaser.State {
         for (const i of [...Array(4).keys()]) {
 	    this.painAudio.chaser.push(game.add.audio(`chaser pain ${i}`));
         }
+	this.playerPainAudio = [];
+        for (const i of [...Array(6).keys()]) {
+	    this.playerPainAudio.push(game.add.audio(`player pain ${i}`));
+        }
+	this.playerDeathAudio = game.add.audio("player death 0");
 
 	this.tilemap = this.game.add.tilemap('level1');
 	this.tilemap.addTilesetImage('overworld', 'overworld');
@@ -788,6 +793,10 @@ export default class extends Phaser.State {
 	    this.player.health = 0;
 	    this.player.state = "dying";
 	    this.player.diedTime = game.time.totalElapsedSeconds();
+	    this.playerDeathAudio.play();
+	} else {
+	    const sound = game.rnd.pick(this.playerPainAudio);
+	    sound.play();
 	}
     }
 
