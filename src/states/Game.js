@@ -113,6 +113,12 @@ export default class extends Phaser.State {
 	this.titleScreen = this.game.add.sprite(0, 0, "title");
 	this.titleScreen.fixedToCamera = true;
 	this.titleScreen.alpha = 1;
+	this.titleOff = false;
+
+	this.runHintScreen = this.game.add.sprite(0, 0, "run hint");
+	this.runHintScreen.fixedToCamera = true;
+	this.runHintScreen.alpha = 0;
+	this.runHintShown = false;
 
 	this.finScreen = this.game.add.sprite(0, 0, "fin");
 	this.finScreen.fixedToCamera = true;
@@ -149,6 +155,7 @@ export default class extends Phaser.State {
     update() {
 	this.updateAudioToggle();
 	this.checkTitleOffTrigger();
+	this.checkRunHintTrigger();
 	this.checkEndTrigger();
 	this.controlPlayer();
 	this.checkArenaTriggers();
@@ -521,6 +528,8 @@ export default class extends Phaser.State {
 	}
 
 	this.titleOffTrigger = this.getObjectsFromJsonMap(jsonMap, {type: 'title off trigger'})[0];
+	this.runHintTrigger = this.getObjectsFromJsonMap(
+	    jsonMap, {type: 'run hint trigger'})[0];
 	this.endTrigger = this.getObjectsFromJsonMap(jsonMap, {type: 'end trigger'})[0];
 	this.lighthouse = this.getObjectsFromJsonMap(jsonMap, {type: 'lighthouse'})[0];
 	this.lighthouseLight = this.getObjectsFromJsonMap(jsonMap, {type: 'light'})[0];
@@ -719,11 +728,30 @@ export default class extends Phaser.State {
     }
 
     checkTitleOffTrigger() {
+	if (this.titleOff) {
+	    return;
+	}
 	const t = this.titleOffTrigger;
 	const rect = new Phaser.Rectangle(t.x, t.y, t.width, t.height);
 	if (Phaser.Rectangle.intersects(this.player.sprite, rect)) {
 	    game.add.tween(this.titleScreen).to(
 		{ alpha: 0 }, 4000, Phaser.Easing.Linear.None, true);
+	    this.titleOff = true;
+	}
+    }
+
+    checkRunHintTrigger() {
+	if (this.runHintShown) {
+	    return;
+	}
+	const t = this.runHintTrigger;
+	const rect = new Phaser.Rectangle(t.x, t.y, t.width, t.height);
+	if (Phaser.Rectangle.intersects(this.player.sprite, rect)) {
+	    game.add.tween(this.runHintScreen).to(
+		{ alpha: 1 }, 2000, Phaser.Easing.Linear.None, true);
+	    game.add.tween(this.runHintScreen).to(
+		{ alpha: 0 }, 4000, Phaser.Easing.Linear.None, true, 4000);
+	    this.runHintShown = true;
 	}
     }
 
