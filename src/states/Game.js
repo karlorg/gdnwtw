@@ -24,17 +24,27 @@ export default class extends Phaser.State {
 	game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
 
 	this.bangAudio = game.add.audio('bang');
-	this.idleAudio = {guard: []};
+	this.idleAudio = {guard: [], chaser: []};
         for (const i of [...Array(7).keys()]) {
 	    this.idleAudio.guard.push(game.add.audio(`guard idle ${i}`));
+        }
+        for (const i of [...Array(8).keys()]) {
+	    this.idleAudio.chaser.push(game.add.audio(`chaser idle ${i}`));
         }
 	this.guardAttackAudio = [];
         for (const i of [...Array(3).keys()]) {
 	    this.guardAttackAudio.push(game.add.audio(`guard attack ${i}`));
         }
-	this.painAudio = {guard: []};
+	this.chaserAttackAudio = [];
+        for (const i of [...Array(5).keys()]) {
+	    this.chaserAttackAudio.push(game.add.audio(`chaser attack ${i}`));
+        }
+	this.painAudio = {guard: [], chaser: []};
         for (const i of [...Array(5).keys()]) {
 	    this.painAudio.guard.push(game.add.audio(`guard pain ${i}`));
+        }
+        for (const i of [...Array(4).keys()]) {
+	    this.painAudio.chaser.push(game.add.audio(`chaser pain ${i}`));
         }
 
 	this.tilemap = this.game.add.tilemap('level1');
@@ -248,6 +258,15 @@ export default class extends Phaser.State {
 			       {x: 0.9, y: 0.1},
 			       {x: 0.1, y: 0.9},
 			       {x: 0.9, y: 0.9}],
+	    lastPlayedIdleAudio: 0,
+	    idleAudioMinDelay: 0.75,
+	    idleAudioMaxDelay: 1.75,
+	    currentIdleAudioDelay: 1,
+	    lastPlayedAttackSound: 0,
+	    attackAudioMinDelay: 0.4,
+	    attackAudioMaxDelay: 1,
+	    currentAttackAudioDelay: 1,
+	    currentAttackSound: null,
 	    speed: playerWalkSpeed * 1.7,
 	    runSpeed: playerWalkSpeed * 1.7,
 	    aggroRange: playerWidth * 7.5,
@@ -812,6 +831,7 @@ export default class extends Phaser.State {
     updateChaser(npc) {
 	switch (npc.state) {
 	case "idle":
+	    this.processIdleSounds(npc, "chaser");
 	    this.checkChaserAggro(npc);
 	    this.checkBonk(npc);
 	    break;
@@ -837,6 +857,7 @@ export default class extends Phaser.State {
 	    const sound = game.rnd.pick(this.guardAttackAudio);
 	    sound.play();
 	    guard.lastPlayedAttackSound = game.time.totalElapsedSeconds();
+	    guard.currentAttackSound = sound;
 	    guard.state = "aggro";
 	}
     }
@@ -848,6 +869,12 @@ export default class extends Phaser.State {
 	);
 	if (dist < npc.aggroRange) {
 	    npc.sprite.animations.play("chase");
+	    const sound = game.rnd.pick(this.chaserAttackAudio);
+	    sound.play();
+	    npc.currentAttackAudioDelay = game.rnd.realInRange(npc.attackAudioMinDelay,
+							       npc.attackAudioMaxDelay);
+	    npc.lastPlayedAttackSound = game.time.totalElapsedSeconds();
+	    npc.currentAttackSound = sound;
 	    npc.state = "aggro";
 	}
     }
@@ -894,6 +921,17 @@ export default class extends Phaser.State {
 	if (dist > npc.aggroRange) {
 	    npc.state = "idle";
 	    return;
+	}
+
+	if (npc.lastPlayedAttackSound + npc.currentAttackAudioDelay
+	    < game.time.totalElapsedSeconds()) {
+	    npc.currentAttackSound.stop();
+	    const sound = game.rnd.pick(this.chaserAttackAudio);
+	    sound.play();
+	    npc.lastPlayedAttackSound = game.time.totalElapsedSeconds();
+	    npc.currentAttackSound = sound;
+	    npc.currentAttackAudioDelay = game.rnd.realInRange(npc.attackAudioMinDelay,
+							       npc.attackAudioMaxDelay);
 	}
 	
 	const angle = Math.atan2(this.player.y - npc.y, this.player.x - npc.x);
@@ -946,8 +984,7 @@ export default class extends Phaser.State {
     checkBonk(npc) {
 	if (Phaser.Rectangle.intersects(npc.sprite, this.world.sprite)) {
 	    this.bangAudio.play();
-	    if (npc.hasOwnProperty("lastPlayedattacksound")
-		&& npc.lastPlayedAttackSound + 0.5 > game.time.totalElapsedSeconds()) {
+	    if (npc.hasOwnProperty("lastPlayedAttackSound")) {
 		npc.currentAttackSound.stop();
 	    }
 	    if (this.painAudio.hasOwnProperty(npc.type)) {

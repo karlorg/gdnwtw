@@ -34,6 +34,15 @@ export default class extends Phaser.State {
       for (const i of [...Array(5).keys()]) {
 	  this.load.audio(`guard pain ${i}`, `assets/sound/guard pain ${i}.ogg`);
       }
+      for (const i of [...Array(8).keys()]) {
+	  this.load.audio(`chaser idle ${i}`, `assets/sound/chaser idle ${i}.ogg`);
+      }
+      for (const i of [...Array(5).keys()]) {
+	  this.load.audio(`chaser attack ${i}`, `assets/sound/chaser attack ${i}.ogg`);
+      }
+      for (const i of [...Array(4).keys()]) {
+	  this.load.audio(`chaser pain ${i}`, `assets/sound/chaser pain ${i}.ogg`);
+      }
   }
 
   create () {
