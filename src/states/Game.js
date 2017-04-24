@@ -146,6 +146,9 @@ export default class extends Phaser.State {
 	this.checkArenaTriggers();
 	this.checkCheckpoints();
 	this.updateWorld();
+	// updateBonkees needs to happen before the npcs' native updateFuncs as the latter will
+	// move the sprites to match our data
+	this.updateBonkees();
 	for (const npc of this.npcs) {
 	    npc.updateFunc.call(this, npc);
 	}
@@ -236,7 +239,7 @@ export default class extends Phaser.State {
 	sprite.animations.add('walk right', [10, 11], 2, true);
 	sprite.animations.add('run left', [0, 1], 4, true);
 	sprite.animations.add('run right', [10, 11], 4, true);
-	sprite.animations.add('fall left', [20, 21], 2, true);
+	sprite.animations.add('fall left', [20, 21], 2, false);
 	sprite.animations.add('fall right', [30, 31], 1, false);
 
 	let unlocksArenaNo = undefined;
@@ -284,7 +287,7 @@ export default class extends Phaser.State {
 	sprite.animations.add('walk left', [0], 2, true);
 	sprite.animations.add('walk right', [10], 2, true);
 	sprite.animations.add('chase', [50, 51, 52, 51], 3, true);
-	sprite.animations.add('fall left', [20, 21], 2, true);
+	sprite.animations.add('fall left', [20, 21], 2, false);
 	sprite.animations.add('fall right', [30, 31], 1, false);
 	sprite.animations.add('idle', [40, 41], 1.5, true);
 	sprite.animations.play('idle');
@@ -756,50 +759,32 @@ export default class extends Phaser.State {
 			 {x: 0.9, y: 0.1},
 			 {x: 0.1, y: 0.9},
 			 {x: 0.9, y: 0.9}];
-	if (true) {  // used to check collision here
-	    this.world.vx = newX - this.world.x;
-	    this.world.vy = newX - this.world.y;
-	    this.world.x = newX;
-	    this.world.y = newY;
-	} else {
-	    // try to scrape along the object in the x and y directions only
-	    let angleOfTravel = Math.atan2(newY - this.world.y, newX - this.world.x);
-	    let speedOfTravel = Math.sqrt(
-		(newX - this.world.x) * (newX - this.world.x) +
-		    (newY - this.world.y) * (newY - this.world.y)
-	    );
-	    let drag = 0;
-	    if (dist > worldPreferredOrbit) {
-		drag = (dist - worldPreferredOrbit) / (0.4 * worldPreferredOrbit);
-		if (drag > 1) { drag = 1; }
-	    }
-	    let attempt = 0;
-	    while (attempt < 2) {
-		let newNewX = this.world.x;
-		let newNewY = this.world.y;
-		if (attempt === 0) {
-	            newNewY += speedOfTravel * 0.6 * (1-drag) * Math.sin(angleOfTravel);
-		} else {
-	            newNewX += speedOfTravel * 0.6 * (1-drag) * Math.cos(angleOfTravel);
-		}
-	        let okToMove = true;
-	        for (const {x, y} of offsets) {
-	            okToMove = okToMove
-		        && !this.isPosnBlocked(newNewX + x * worldWidth, newNewY + y * worldHeight);
-	        }
-	        if (okToMove) {
-		    this.world.vx = newNewX - this.world.x;
-		    this.world.vy = newNewX - this.world.y;
-		    this.world.x = newNewX;
-		    this.world.y = newNewY;
-		    break;
-	        }
-		attempt += 1;
-	    }
-	}
+	this.world.vx = newX - this.world.x;
+	this.world.vy = newY - this.world.y;
+	this.world.x = newX;
+	this.world.y = newY;
 	
 	this.world.sprite.x = this.world.x;
 	this.world.sprite.y = this.world.y;
+    }
+
+    updateBonkees() {
+	for (const npc of this.npcs) {
+	    if (npc.state === "bonked") {
+		if (npc.bonkedTime + 1 < game.time.totalElapsedSeconds()) {
+		    npc.state = "dead";
+		    continue;
+		}
+
+		let dx = 3 * Math.cos(npc.bonkAngle);
+		let dy = 3 * Math.sin(npc.bonkAngle);
+		({dx, dy} = this.adjustPathForObstacles(npc.x, npc.y, dx, dy,
+							npc.width, npc.height,
+							npc.collisionOffsets));
+		npc.x += dx;
+		npc.y += dy;
+	    }
+	}
     }
 
     updateShots() {
@@ -827,7 +812,8 @@ export default class extends Phaser.State {
 	    return;
 	}
 	for (const npc of this.npcs) {
-	    if (npc.state === "bonked" || !npc.hasOwnProperty("contactDamage")) {
+	    if (npc.state === "bonked" || npc.state === "dead"
+		|| !npc.hasOwnProperty("contactDamage")) {
 		continue;
 	    }
 	    if (Phaser.Rectangle.intersects(npc.sprite, this.player.sprite)) {
@@ -891,17 +877,11 @@ export default class extends Phaser.State {
     updateKid(kid) {
 	switch (kid.state) {
 	case "idle":
-	    this.kidSkip(kid);
+	    this.walkAround(kid);
+	    this.checkBonk(kid);
 	}
-    }
-
-    kidSkip(kid) {
-	this.walkAround(kid);
-
 	kid.sprite.x = kid.x;
 	kid.sprite.y = kid.y;
-
-	this.checkBonk(kid);
     }
 
     updateGuard(guard) {
@@ -1089,7 +1069,8 @@ export default class extends Phaser.State {
     checkBonk(npc) {
 	if (Phaser.Rectangle.intersects(npc.sprite, this.world.sprite)) {
 	    this.bangAudio.play();
-	    if (npc.hasOwnProperty("lastPlayedAttackSound")) {
+	    if (npc.hasOwnProperty("lastPlayedAttackSound")
+		&& npc.currentAttackSound) {
 		npc.currentAttackSound.stop();
 	    }
 	    if (this.painAudio.hasOwnProperty(npc.type)) {
@@ -1102,7 +1083,12 @@ export default class extends Phaser.State {
 
     getBonked(npc) {
 	npc.state = "bonked";
-	npc.sprite.animations.play("fall right");
+	const dir = this.world.vx < 0 ? "left" : "right";
+	npc.sprite.animations.play(`fall ${dir}`);
+	const bonkAngle = Math.atan2(this.world.vy, this.world.vx);
+	console.log(bonkAngle);
+	npc.bonkAngle = bonkAngle;
+	npc.bonkedTime = game.time.totalElapsedSeconds();
 	if (npc.hasOwnProperty("unlocksArenaNo") && npc.unlocksArenaNo !== undefined) {
 	    this.countUnlocker(npc.unlocksArenaNo);
 	}

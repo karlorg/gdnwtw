@@ -58,8 +58,8 @@
                  "type":"player",
                  "visible":true,
                  "width":32,
-                 "x":804.617878787879,
-                 "y":2578.16666666667
+                 "x":1584.26939393939,
+                 "y":2498.33333333333
                 }, 
                 {
                  "gid":99,
@@ -797,7 +797,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":57,
+ "nextobjectid":60,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tileheight":32,
