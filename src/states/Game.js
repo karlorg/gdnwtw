@@ -136,7 +136,7 @@ export default class extends Phaser.State {
 	sprite.animations.add('walk left', [2, 3], 2, true);
 	sprite.animations.add('talk', [10, 11], 2, true);
 	sprite.animations.add('fall right', [4, 5], 1, false);
-	sprite.animations.add('fall left', [4, 5], 1, false);
+	sprite.animations.add('fall left', [6, 7], 1, false);
 
 	return {
 	    x, y,
