@@ -21,6 +21,7 @@ export default class extends Phaser.State {
 
     create () {
 	this.game.stage.backgroundColor = '#787878';
+	game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
 
 	this.tilemap = this.game.add.tilemap('level1');
 	this.tilemap.addTilesetImage('overworld', 'overworld');
@@ -66,6 +67,8 @@ export default class extends Phaser.State {
     }
 
     update() {
+	game.input.onDown.add(this.toggleFullScreen, this);
+
 	this.controlPlayer();
 	this.checkArenaTriggers();
 	this.checkCheckpoints();
@@ -1017,5 +1020,14 @@ export default class extends Phaser.State {
 		 || (this.player.timeInvincibleStarted + this.player.invincibleDuration
 		     > game.time.totalElapsedSeconds())
 	        );
+    }
+
+
+    toggleFullScreen() {
+	if (game.scale.isFullScreen) {
+	    game.scale.stopFullScreen();
+	} else {
+	    game.scale.startFullScreen(false);
+	}
     }
 }
