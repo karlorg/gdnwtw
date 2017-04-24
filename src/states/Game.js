@@ -158,8 +158,10 @@ export default class extends Phaser.State {
 	const sprite = this.game.add.sprite(
  	    x, y, 'guard', 1
 	);
-	sprite.animations.add('walk left', [0], 2, true);
-	sprite.animations.add('walk right', [10], 2, true);
+	sprite.animations.add('walk left', [0, 1], 2, true);
+	sprite.animations.add('walk right', [10, 11], 2, true);
+	sprite.animations.add('run left', [0, 1], 4, true);
+	sprite.animations.add('run right', [10, 11], 4, true);
 	sprite.animations.add('fall left', [20, 21], 2, true);
 	sprite.animations.add('fall right', [30, 31], 1, false);
 
@@ -949,11 +951,10 @@ export default class extends Phaser.State {
 						npc.collisionOffsets));
 	npc.x += dx;
 	npc.y += dy;
-	if (dx < 0) {
-	    npc.sprite.animations.play("walk left");
-	} else {
-	    npc.sprite.animations.play("walk right");
-	}
+	const speed = Math.sqrt(dx * dx + dy * dy);
+	const gait = speed > npc.speed + 0.01 ? "run" : "walk";
+	const dir = dx < 0 ? "left" : "right";
+	npc.sprite.animations.play(`${gait} ${dir}`);
     }
 
     updatePlayerHealth() {
