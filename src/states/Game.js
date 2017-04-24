@@ -52,7 +52,7 @@ export default class extends Phaser.State {
         for (const i of [...Array(5).keys()]) {
 	    this.shooterAttackAudio.push(game.add.audio(`shooter attack ${i}`));
         }
-	this.painAudio = {guard: [], chaser: [], shooter: []};
+	this.painAudio = {guard: [], chaser: [], shooter: [], kid: []};
         for (const i of [...Array(5).keys()]) {
 	    this.painAudio.guard.push(game.add.audio(`guard pain ${i}`));
         }
@@ -62,6 +62,7 @@ export default class extends Phaser.State {
         for (const i of [...Array(4).keys()]) {
 	    this.painAudio.shooter.push(game.add.audio(`shooter pain ${i}`));
         }
+	this.painAudio.kid.push(game.add.audio("kid pain 0"));
 	this.playerPainAudio = [];
         for (const i of [...Array(6).keys()]) {
 	    this.playerPainAudio.push(game.add.audio(`player pain ${i}`));
