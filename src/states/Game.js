@@ -24,6 +24,7 @@ export default class extends Phaser.State {
 	game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
 
 	this.bangAudio = game.add.audio('bang');
+	this.lightOnSound = game.add.audio('light on');
 	this.idleAudio = {guard: [], chaser: [], shooter: []};
         for (const i of [...Array(7).keys()]) {
 	    this.idleAudio.guard.push(game.add.audio(`guard idle ${i}`));
@@ -88,6 +89,12 @@ export default class extends Phaser.State {
 	this.gateOpenIndices = [];
 	[this.gateOpenIndices[1]] = this.getTileIndices(this.tilemap, 'gateOpen', 1);
 	[this.gateOpenIndices[2]] = this.getTileIndices(this.tilemap, 'gateOpen', 2);
+	this.lighthouseOffIndices = [];
+	[this.lighthouseOffIndices[1]] = this.getTileIndices(this.tilemap, 'lighthouse off', 1);
+	[this.lighthouseOffIndices[2]] = this.getTileIndices(this.tilemap, 'lighthouse off', 2);
+	this.lighthouseOnIndices = [];
+	[this.lighthouseOnIndices[1]] = this.getTileIndices(this.tilemap, 'lighthouse on', 1);
+	[this.lighthouseOnIndices[2]] = this.getTileIndices(this.tilemap, 'lighthouse on', 2);
 
 	this.camera.follow(this.player.sprite);
 
@@ -98,6 +105,10 @@ export default class extends Phaser.State {
 	this.hurtBorder = this.game.add.sprite(0, 0, "hurt-border");
 	this.hurtBorder.fixedToCamera = true;
 	this.hurtBorder.alpha = 0;
+
+	this.finScreen = this.game.add.sprite(0, 0, "fin");
+	this.finScreen.fixedToCamera = true;
+	this.finScreen.alpha = 0;
 
 	this.fullscreenIcon = this.game.add.button(640, 480, "fullscreen", () => {
 	    this.toggleFullScreen();
@@ -129,6 +140,7 @@ export default class extends Phaser.State {
 
     update() {
 	this.updateAudioToggle();
+	this.checkEndTrigger();
 	this.controlPlayer();
 	this.checkArenaTriggers();
 	this.checkCheckpoints();
@@ -489,6 +501,10 @@ export default class extends Phaser.State {
 	    this.checkpoints.push(this.makeCheckpoint(cp));
 	}
 
+	this.endTrigger = this.getObjectsFromJsonMap(jsonMap, {type: 'end trigger'})[0];
+	this.lighthouse = this.getObjectsFromJsonMap(jsonMap, {type: 'lighthouse'})[0];
+	this.lighthouseLight = this.getObjectsFromJsonMap(jsonMap, {type: 'light'})[0];
+
 	const respawns = this.getObjectsFromJsonMap(jsonMap, {type: 'respawn'});
 	for (const respawn of respawns) {
 	    this.respawns[respawn.properties.respawnNo] = this.makeRespawn(respawn);
@@ -511,7 +527,12 @@ export default class extends Phaser.State {
 	let dx = 0;
 	let dy = 0;
 
-	if (this.player.state === "dead") {
+	if (this.player.state === "ending") {
+	    this.walkPlayerTowardLighthouse();
+	    return;
+	}
+
+	if (this.player.state === "dead" || this.player.state == "done") {
 	    return;
 	}
 
@@ -675,6 +696,32 @@ export default class extends Phaser.State {
 		this.player.currentRespawn = cp.respawnNo;
 	    }
 	}
+    }
+
+    checkEndTrigger() {
+	if (this.player.state !== "ending") {
+	    const t = this.endTrigger;
+	    const rect = new Phaser.Rectangle(t.x, t.y, t.width, t.height);
+	    if (Phaser.Rectangle.intersects(this.player.sprite, rect)) {
+		this.player.state = "ending";
+	    }
+	}
+    }
+
+    walkPlayerTowardLighthouse() {
+	const dx = this.lighthouse.x - this.player.x;
+	const dy = this.lighthouse.y - this.player.y;
+	const distSqr = dx * dx + dy * dy;
+	if (distSqr < 4) {
+	    this.player.state = "done";
+	    this.triggerLighthouse();
+	    return;
+	}
+	this.player.sprite.animations.play("walk down");
+	const angle = Math.atan2(this.lighthouse.y - this.player.y,
+				 this.lighthouse.x - this.player.x);
+	this.player.x += playerWalkSpeed * Math.cos(angle);
+	this.player.y += playerWalkSpeed * Math.sin(angle);
     }
 
     updateWorld() {
@@ -1193,4 +1240,23 @@ export default class extends Phaser.State {
 	    this.muteIcon.animations.play("on");
 	}
     }
+
+    triggerLighthouse() {
+	const timer = game.time.create(true);
+	timer.add(4000, () => {
+	    this.world.sun = this.lighthouseLight;
+	    this.lightOnSound.play();
+	    this.tilemap.forEach((tile) => {
+		const offIndex = this.lighthouseOffIndices.indexOf(tile.index);
+		if (offIndex >= 0) {
+		    const on = this.lighthouseOnIndices[offIndex];
+		    this.tilemap.putTile(on, tile.x, tile.y, "Over sprites");
+		}
+	    }, this, 0, 0, this.tilemap.width, this.tilemap.height, "Over sprites");
+	    game.add.tween(this.finScreen).to(
+		{ alpha: 1 }, 2000, Phaser.Easing.Linear.None, true, 3000);
+	}, this);
+	timer.start();
+    }
+
 }

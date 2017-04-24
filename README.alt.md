@@ -3,6 +3,7 @@ Map tiles by Buch at OpenGameArt.org, http://blog-buch.rhcloud.com and Jeffrey K
 Some sound effects based on those available online, including:
 
 * https://www.freesound.org/people/pushtobreak/sounds/16793/ by pushtobreak
+* https://www.freesound.org/people/ryanlouis/sounds/366958/ by ryanlouis
 
 # Phaser + ES6 + Webpack.
 #### A bootstrap project to create games with Phaser + ES6 + Webpack.

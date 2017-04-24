@@ -16,6 +16,7 @@ export default class extends Phaser.State {
       this.load.tilemap('level1', 'assets/level1.json', null, Phaser.Tilemap.TILED_JSON);
       this.load.image('overworld', 'assets/images/overworld.png');
       this.load.image('hurt-border', 'assets/images/hurt-border.png');
+      this.load.image('fin', 'assets/images/fin.png');
       this.load.spritesheet('player', 'assets/images/player.png', 32, 32, -1, 0, 0, 0);
       this.load.spritesheet('kid', 'assets/images/kid.png', 32, 32, -1, 0, 0, 0);
       this.load.spritesheet('guard', 'assets/images/guard.png', 32, 32, -1, 0, 0, 0);
@@ -27,6 +28,7 @@ export default class extends Phaser.State {
       this.load.spritesheet('mute', 'assets/images/mute.png', 64, 64, -1, 0, 0);
 
       this.load.audio('bang', 'assets/sound/bang0.ogg');
+      this.load.audio('light on', 'assets/sound/light on.ogg');
       for (const i of [...Array(7).keys()]) {
 	  this.load.audio(`guard idle ${i}`, `assets/sound/guard idle ${i}.ogg`);
       }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" nextobjectid="54">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" nextobjectid="57">
  <tileset firstgid="1" name="overworld" tilewidth="32" tileheight="32" tilecount="189" columns="21">
   <image source="images/overworld.png" width="672" height="288"/>
   <tile id="8">
@@ -245,6 +245,16 @@
     <property name="blocks" type="bool" value="true"/>
    </properties>
   </tile>
+  <tile id="99">
+   <properties>
+    <property name="lighthouse off" type="int" value="1"/>
+   </properties>
+  </tile>
+  <tile id="100">
+   <properties>
+    <property name="lighthouse off" type="int" value="2"/>
+   </properties>
+  </tile>
   <tile id="102">
    <properties>
     <property name="blocks" type="bool" value="true"/>
@@ -329,6 +339,16 @@
   <tile id="140">
    <properties>
     <property name="blocks" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="143">
+   <properties>
+    <property name="lighthouse on" type="int" value="1"/>
+   </properties>
+  </tile>
+  <tile id="144">
+   <properties>
+    <property name="lighthouse on" type="int" value="2"/>
    </properties>
   </tile>
   <tile id="148">
@@ -778,7 +798,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,144,145,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,100,101,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,121,122,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,142,143,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,163,164,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -794,7 +814,7 @@
 </data>
  </layer>
  <objectgroup name="Characters">
-  <object id="3" name="player" type="player" gid="47" x="801.285" y="2803.5" width="32" height="32"/>
+  <object id="3" name="player" type="player" gid="47" x="804.618" y="2578.17" width="32" height="32"/>
   <object id="4" name="kid" type="kid" gid="99" x="1787" y="2471" width="32" height="32"/>
   <object id="5" name="guard 5" type="guard" gid="143" x="1905.33" y="2023.67" width="32" height="32">
    <properties>
@@ -961,5 +981,8 @@
   <object id="51" name="chaser" type="chaser" gid="186" x="124" y="1304" width="32" height="32"/>
   <object id="52" name="guard" type="guard" gid="143" x="128" y="947" width="32" height="32"/>
   <object id="53" name="guard" type="guard" gid="143" x="415" y="832" width="32" height="32"/>
+  <object id="54" name="end trigger" type="end trigger" x="765.333" y="2847.33" width="128.667" height="26"/>
+  <object id="55" name="lighthouse" type="lighthouse" x="855.333" y="2898.67" width="2" height="2.66667"/>
+  <object id="56" name="light" type="light" x="862" y="2798" width="2.66667" height="2.66667"/>
  </objectgroup>
 </map>
