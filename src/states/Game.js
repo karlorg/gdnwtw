@@ -110,6 +110,10 @@ export default class extends Phaser.State {
 	this.hurtBorder.fixedToCamera = true;
 	this.hurtBorder.alpha = 0;
 
+	this.titleScreen = this.game.add.sprite(0, 0, "title");
+	this.titleScreen.fixedToCamera = true;
+	this.titleScreen.alpha = 1;
+
 	this.finScreen = this.game.add.sprite(0, 0, "fin");
 	this.finScreen.fixedToCamera = true;
 	this.finScreen.alpha = 0;
@@ -144,6 +148,7 @@ export default class extends Phaser.State {
 
     update() {
 	this.updateAudioToggle();
+	this.checkTitleOffTrigger();
 	this.checkEndTrigger();
 	this.controlPlayer();
 	this.checkArenaTriggers();
@@ -515,6 +520,7 @@ export default class extends Phaser.State {
 	    this.checkpoints.push(this.makeCheckpoint(cp));
 	}
 
+	this.titleOffTrigger = this.getObjectsFromJsonMap(jsonMap, {type: 'title off trigger'})[0];
 	this.endTrigger = this.getObjectsFromJsonMap(jsonMap, {type: 'end trigger'})[0];
 	this.lighthouse = this.getObjectsFromJsonMap(jsonMap, {type: 'lighthouse'})[0];
 	this.lighthouseLight = this.getObjectsFromJsonMap(jsonMap, {type: 'light'})[0];
@@ -709,6 +715,15 @@ export default class extends Phaser.State {
 	    if (Phaser.Rectangle.intersects(this.player.sprite, cpRect)) {
 		this.player.currentRespawn = cp.respawnNo;
 	    }
+	}
+    }
+
+    checkTitleOffTrigger() {
+	const t = this.titleOffTrigger;
+	const rect = new Phaser.Rectangle(t.x, t.y, t.width, t.height);
+	if (Phaser.Rectangle.intersects(this.player.sprite, rect)) {
+	    game.add.tween(this.titleScreen).to(
+		{ alpha: 0 }, 4000, Phaser.Easing.Linear.None, true);
 	}
     }
 

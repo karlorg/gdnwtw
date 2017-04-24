@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" nextobjectid="60">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" nextobjectid="61">
  <tileset firstgid="1" name="overworld" tilewidth="32" tileheight="32" tilecount="189" columns="21">
   <image source="images/overworld.png" width="672" height="288"/>
   <tile id="8">
@@ -814,7 +814,7 @@
 </data>
  </layer>
  <objectgroup name="Characters">
-  <object id="3" name="player" type="player" gid="47" x="1584.27" y="2498.33" width="32" height="32"/>
+  <object id="3" name="player" type="player" gid="47" x="1696.27" y="2963.33" width="32" height="32"/>
   <object id="4" name="kid" type="kid" gid="99" x="1787" y="2471" width="32" height="32"/>
   <object id="5" name="guard 5" type="guard" gid="143" x="1905.33" y="2023.67" width="32" height="32">
    <properties>
@@ -984,5 +984,6 @@
   <object id="54" name="end trigger" type="end trigger" x="765.333" y="2847.33" width="128.667" height="26"/>
   <object id="55" name="lighthouse" type="lighthouse" x="855.333" y="2898.67" width="2" height="2.66667"/>
   <object id="56" name="light" type="light" x="862" y="2798" width="2.66667" height="2.66667"/>
+  <object id="60" name="title off trigger" type="title off trigger" x="1656" y="2769" width="106" height="34"/>
  </objectgroup>
 </map>

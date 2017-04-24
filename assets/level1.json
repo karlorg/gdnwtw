@@ -58,8 +58,8 @@
                  "type":"player",
                  "visible":true,
                  "width":32,
-                 "x":1584.26939393939,
-                 "y":2498.33333333333
+                 "x":1696.26939393939,
+                 "y":2963.33333333333
                 }, 
                 {
                  "gid":99,
@@ -789,6 +789,17 @@
                  "width":2.66666666666663,
                  "x":862,
                  "y":2798
+                }, 
+                {
+                 "height":34,
+                 "id":60,
+                 "name":"title off trigger",
+                 "rotation":0,
+                 "type":"title off trigger",
+                 "visible":true,
+                 "width":106,
+                 "x":1656,
+                 "y":2769
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -797,7 +808,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":60,
+ "nextobjectid":61,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tileheight":32,
