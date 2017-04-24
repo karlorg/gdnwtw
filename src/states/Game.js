@@ -28,7 +28,7 @@ export default class extends Phaser.State {
 	this.bangAudio = game.add.audio('bang');
 	this.lightOnSound = game.add.audio('light on');
 	this.seagullsSound = game.add.audio('seagulls');
-	this.idleAudio = {guard: [], chaser: [], shooter: []};
+	this.idleAudio = {guard: [], chaser: [], shooter: [], kid: []};
         for (const i of [...Array(7).keys()]) {
 	    this.idleAudio.guard.push(game.add.audio(`guard idle ${i}`));
         }
@@ -37,6 +37,9 @@ export default class extends Phaser.State {
         }
         for (const i of [...Array(10).keys()]) {
 	    this.idleAudio.shooter.push(game.add.audio(`shooter idle ${i}`));
+        }
+        for (const i of [...Array(7).keys()]) {
+	    this.idleAudio.kid.push(game.add.audio(`kid idle ${i}`));
         }
 	this.guardAttackAudio = [];
         for (const i of [...Array(3).keys()]) {
@@ -237,6 +240,12 @@ export default class extends Phaser.State {
 			       {x: 0.7, y: 0.4},
 			       {x: 0.3, y: 0.9},
 			       {x: 0.7, y: 0.9}],
+	    lastPlayedIdleAudio: 0,
+	    idleAudioMinDelay: 1,
+	    idleAudioMaxDelay: 2.5,
+	    idleAudioVolume: 0.1,
+	    currentIdleAudioDelay: 1,
+	    currentIdleSound: null,
 	    state: "idle",
 	    homeX: x, homeY: y,
 	    destX: x, destY: y,
@@ -935,6 +944,7 @@ export default class extends Phaser.State {
 	switch (kid.state) {
 	case "idle":
 	    this.walkAround(kid);
+	    this.processIdleSounds(kid, "kid");
 	    this.checkBonk(kid);
 	}
 	kid.sprite.x = kid.x;
@@ -1130,6 +1140,10 @@ export default class extends Phaser.State {
 		&& npc.currentAttackSound) {
 		npc.currentAttackSound.stop();
 	    }
+	    if (npc.hasOwnProperty("currentIdleSound")
+		&& npc.currentIdleSound) {
+		npc.currentIdleSound.stop();
+	    }
 	    if (this.painAudio.hasOwnProperty(npc.type)) {
 		const painSound = game.rnd.pick(this.painAudio[npc.type]);
 		painSound.play();
@@ -1273,6 +1287,7 @@ export default class extends Phaser.State {
 	    volume *= npc.idleAudioVolume;
 	}
 	sound.play('', 0, volume);
+	npc.currentIdleSound = sound;
 	npc.lastPlayedIdleAudio = game.time.totalElapsedSeconds();
 	npc.currentIdleAudioDelay = game.rnd.realInRange(npc.idleAudioMinDelay, npc.idleAudioMaxDelay);
     }
