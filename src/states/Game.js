@@ -91,13 +91,31 @@ export default class extends Phaser.State {
 
 	this.camera.follow(this.player.sprite);
 
+	this.overSpritesLayer = this.tilemap.createLayer('Over sprites');
+
+	this.world = this.makeWorld(this.player);
+
 	this.hurtBorder = this.game.add.sprite(0, 0, "hurt-border");
 	this.hurtBorder.fixedToCamera = true;
 	this.hurtBorder.alpha = 0;
 
-	this.overSpritesLayer = this.tilemap.createLayer('Over sprites');
+	this.fullscreenIcon = this.game.add.button(640, 480, "fullscreen", () => {
+	    this.toggleFullScreen();
+	});
+	this.fullscreenIcon.anchor.setTo(1, 1);
+	this.fullscreenIcon.fixedToCamera = true;
+	this.fullscreenIcon.animations.add("off", [0], 1, false);
+	this.fullscreenIcon.animations.add("on", [1], 1, false);
+	this.fullscreenIcon.animations.play("off");
 
-	this.world = this.makeWorld(this.player);
+	this.muteIcon = this.game.add.button(0, 480, "mute", () => {
+	    game.sound.mute = !game.sound.mute;
+	});
+	this.muteIcon.anchor.setTo(0, 1);
+	this.muteIcon.fixedToCamera = true;
+	this.muteIcon.animations.add("off", [0], 1, false);
+	this.muteIcon.animations.add("on", [1], 1, false);
+	this.muteIcon.animations.play("off");
     }
 
     render () {
@@ -110,8 +128,7 @@ export default class extends Phaser.State {
     }
 
     update() {
-	game.input.onDown.add(this.toggleFullScreen, this);
-
+	this.updateAudioToggle();
 	this.controlPlayer();
 	this.checkArenaTriggers();
 	this.checkCheckpoints();
@@ -1141,8 +1158,10 @@ export default class extends Phaser.State {
     toggleFullScreen() {
 	if (game.scale.isFullScreen) {
 	    game.scale.stopFullScreen();
+	    this.fullscreenIcon.animations.play("off");
 	} else {
 	    game.scale.startFullScreen(false);
+	    this.fullscreenIcon.animations.play("on");
 	}
     }
 
@@ -1165,5 +1184,13 @@ export default class extends Phaser.State {
 	sound.play('', 0, volume);
 	npc.lastPlayedIdleAudio = game.time.totalElapsedSeconds();
 	npc.currentIdleAudioDelay = game.rnd.realInRange(npc.idleAudioMinDelay, npc.idleAudioMaxDelay);
+    }
+    
+    updateAudioToggle() {
+	if (this.game.sound.mute) {
+	    this.muteIcon.animations.play("off");
+	} else {
+	    this.muteIcon.animations.play("on");
+	}
     }
 }
