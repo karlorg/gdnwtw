@@ -23,6 +23,8 @@ export default class extends Phaser.State {
 	this.game.stage.backgroundColor = '#787878';
 	game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
 
+	game.physics.startSystem(Phaser.Physics.ARCADE);
+
 	this.bangAudio = game.add.audio('bang');
 	this.lightOnSound = game.add.audio('light on');
 	this.seagullsSound = game.add.audio('seagulls');
@@ -458,6 +460,12 @@ export default class extends Phaser.State {
     makeWorld (player) {
 	const x = player.x + worldPreferredOrbit;
 	const y = player.y;
+	const emitter = game.add.emitter(x, y, 20);
+	emitter.makeParticles('cloud', [0, 1, 2]);
+	emitter.setAlpha(1, 0, 1000);
+	emitter.setScale(1, 0, 1, 0, 1000);
+	emitter.setRotation(0, TAU);
+	// emitter.start(false, 1000, 5);
 	return {
 	    x, y,
 	    // vx and vy are not used for physics, but are recorded when the world is updated and
@@ -468,6 +476,7 @@ export default class extends Phaser.State {
 	    sprite: this.game.add.sprite(
 		x, y, 'world', 0
 	    ),
+	    emitter,
 	    dummyProp: false
 	};
     }
@@ -767,6 +776,10 @@ export default class extends Phaser.State {
 	
 	this.world.sprite.x = this.world.x;
 	this.world.sprite.y = this.world.y;
+	this.world.emitter.minParticleSpeed.set(-this.world.vx, -this.world.vy);
+	this.world.emitter.maxParticleSpeed.set(-this.world.vx, -this.world.vy);
+	this.world.emitter.x = this.world.x + 8;
+	this.world.emitter.y = this.world.y + 8;
     }
 
     updateBonkees() {
