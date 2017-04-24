@@ -202,6 +202,7 @@ export default class extends Phaser.State {
 	);
 	sprite.animations.add('walk left', [0], 2, true);
 	sprite.animations.add('walk right', [10], 2, true);
+	sprite.animations.add('chase', [50, 51, 52, 51], 3, true);
 	sprite.animations.add('fall left', [20, 21], 2, true);
 	sprite.animations.add('fall right', [30, 31], 1, false);
 	sprite.animations.add('idle', [40, 41], 1.5, true);
@@ -226,7 +227,7 @@ export default class extends Phaser.State {
 			       {x: 0.9, y: 0.9}],
 	    speed: playerWalkSpeed * 1.7,
 	    runSpeed: playerWalkSpeed * 1.7,
-	    aggroRange: playerWidth * 10,
+	    aggroRange: playerWidth * 7.5,
 	    contactDamage: 15,
 	    tauntStartTime: 0,
 	    tauntDuration: 1,
@@ -820,6 +821,7 @@ export default class extends Phaser.State {
 		(npc.y - this.player.y) * (npc.y - this.player.y)
 	);
 	if (dist < npc.aggroRange) {
+	    npc.sprite.animations.play("chase");
 	    npc.state = "aggro";
 	}
     }
