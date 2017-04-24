@@ -24,6 +24,18 @@ export default class extends Phaser.State {
 	game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
 
 	this.bangAudio = game.add.audio('bang');
+	this.idleAudio = {guard: []};
+        for (const i of [...Array(7).keys()]) {
+	    this.idleAudio.guard.push(game.add.audio(`guard idle ${i}`));
+        }
+	this.guardAttackAudio = [];
+        for (const i of [...Array(3).keys()]) {
+	    this.guardAttackAudio.push(game.add.audio(`guard attack ${i}`));
+        }
+	this.painAudio = {guard: []};
+        for (const i of [...Array(5).keys()]) {
+	    this.painAudio.guard.push(game.add.audio(`guard pain ${i}`));
+        }
 
 	this.tilemap = this.game.add.tilemap('level1');
 	this.tilemap.addTilesetImage('overworld', 'overworld');
@@ -141,6 +153,7 @@ export default class extends Phaser.State {
 	sprite.animations.add('fall left', [6, 7], 1, false);
 
 	return {
+	    type: 'kid',
 	    x, y,
 	    width: 32, height: 32,
 	    collisionOffsets: [{x: 0.3, y: 0.4},
@@ -177,6 +190,7 @@ export default class extends Phaser.State {
 	}
 
 	return {
+	    type: "guard",
 	    x, y,
 	    width: 32, height: 32,
 	    state: "idle",
@@ -186,6 +200,12 @@ export default class extends Phaser.State {
 			       {x: 0.9, y: 0.9}],
 	    homeX: x, homeY: y,
 	    destX: x, destY: y,
+	    lastPlayedIdleAudio: 0,
+	    idleAudioMinDelay: 1,
+	    idleAudioMaxDelay: 3,
+	    currentIdleAudioDelay: 1,
+	    lastPlayedAttackSound: 0,
+	    currentAttackSound: null,
 	    speed: 0.7,
 	    runSpeed: playerWalkSpeed * 1.7,
 	    aggroRange: worldPreferredOrbit * 1.7,
@@ -220,6 +240,7 @@ export default class extends Phaser.State {
 	}
 
 	return {
+	    type: 'chaser',
 	    x, y,
 	    width: 32, height: 32,
 	    state: "idle",
@@ -260,6 +281,7 @@ export default class extends Phaser.State {
 	}
 
 	return {
+	    type: 'shooter',
 	    x, y,
 	    width: 32, height: 32,
 	    state: "idle",
@@ -770,6 +792,7 @@ export default class extends Phaser.State {
 	switch (guard.state) {
 	case "idle":
 	    this.walkAround(guard);
+	    this.processIdleSounds(guard, "guard");
 	    this.checkAggro(guard);
 	    this.checkBonk(guard);
 	    break;
@@ -811,6 +834,9 @@ export default class extends Phaser.State {
 		(guard.homeY - this.player.y) * (guard.homeY - this.player.y)
 	);
 	if (dist < guard.aggroRange) {
+	    const sound = game.rnd.pick(this.guardAttackAudio);
+	    sound.play();
+	    guard.lastPlayedAttackSound = game.time.totalElapsedSeconds();
 	    guard.state = "aggro";
 	}
     }
@@ -920,6 +946,14 @@ export default class extends Phaser.State {
     checkBonk(npc) {
 	if (Phaser.Rectangle.intersects(npc.sprite, this.world.sprite)) {
 	    this.bangAudio.play();
+	    if (npc.hasOwnProperty("lastPlayedattacksound")
+		&& npc.lastPlayedAttackSound + 0.5 > game.time.totalElapsedSeconds()) {
+		npc.currentAttackSound.stop();
+	    }
+	    if (this.painAudio.hasOwnProperty(npc.type)) {
+		const painSound = game.rnd.pick(this.painAudio[npc.type]);
+		painSound.play();
+	    }
 	    this.getBonked(npc);
 	}
     }
@@ -1033,5 +1067,23 @@ export default class extends Phaser.State {
 	} else {
 	    game.scale.startFullScreen(false);
 	}
+    }
+
+    processIdleSounds(npc, type) {
+	if (npc.lastPlayedIdleAudio + npc.currentIdleAudioDelay
+	    > game.time.totalElapsedSeconds()) {
+	    return;
+	}
+	const dx = npc.x - this.player.x;
+	const dy = npc.y - this.player.y;
+	const dist = Math.sqrt(dx * dx + dy * dy);
+	if (dist > worldPreferredOrbit * 4) {
+	    return;
+	}
+	const sound = game.rnd.pick(this.idleAudio[type]);
+	const volume = 1 - ((dist - worldPreferredOrbit) / (worldPreferredOrbit * 2.5));
+	sound.play('', 0, volume);
+	npc.lastPlayedIdleAudio = game.time.totalElapsedSeconds();
+	npc.currentIdleAudioDelay = game.rnd.realInRange(npc.idleAudioMinDelay, npc.idleAudioMaxDelay);
     }
 }

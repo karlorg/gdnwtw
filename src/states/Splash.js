@@ -25,6 +25,15 @@ export default class extends Phaser.State {
       this.load.spritesheet('shot', 'assets/images/shot.png', 16, 16, -1, 0, 0);
 
       this.load.audio('bang', 'assets/sound/bang0.ogg');
+      for (const i of [...Array(7).keys()]) {
+	  this.load.audio(`guard idle ${i}`, `assets/sound/guard idle ${i}.ogg`);
+      }
+      for (const i of [...Array(3).keys()]) {
+	  this.load.audio(`guard attack ${i}`, `assets/sound/guard attack ${i}.ogg`);
+      }
+      for (const i of [...Array(5).keys()]) {
+	  this.load.audio(`guard pain ${i}`, `assets/sound/guard pain ${i}.ogg`);
+      }
   }
 
   create () {
