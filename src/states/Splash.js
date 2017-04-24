@@ -29,6 +29,7 @@ export default class extends Phaser.State {
 
       this.load.audio('bang', 'assets/sound/bang0.ogg');
       this.load.audio('light on', 'assets/sound/light on.ogg');
+      this.load.audio('seagulls', 'assets/sound/seagulls.ogg');
       for (const i of [...Array(7).keys()]) {
 	  this.load.audio(`guard idle ${i}`, `assets/sound/guard idle ${i}.ogg`);
       }

@@ -4,6 +4,7 @@ Some sound effects based on those available online, including:
 
 * https://www.freesound.org/people/pushtobreak/sounds/16793/ by pushtobreak
 * https://www.freesound.org/people/ryanlouis/sounds/366958/ by ryanlouis
+* https://www.freesound.org/people/juskiddink/sounds/149488/ by juskiddink
 
 # Phaser + ES6 + Webpack.
 #### A bootstrap project to create games with Phaser + ES6 + Webpack.

@@ -25,6 +25,7 @@ export default class extends Phaser.State {
 
 	this.bangAudio = game.add.audio('bang');
 	this.lightOnSound = game.add.audio('light on');
+	this.seagullsSound = game.add.audio('seagulls');
 	this.idleAudio = {guard: [], chaser: [], shooter: []};
         for (const i of [...Array(7).keys()]) {
 	    this.idleAudio.guard.push(game.add.audio(`guard idle ${i}`));
@@ -1255,6 +1256,11 @@ export default class extends Phaser.State {
 	    }, this, 0, 0, this.tilemap.width, this.tilemap.height, "Over sprites");
 	    game.add.tween(this.finScreen).to(
 		{ alpha: 1 }, 2000, Phaser.Easing.Linear.None, true, 3000);
+	    const timer = game.time.create(true);
+	    timer.add(3000, () => {
+		this.seagullsSound.fadeIn(6000, true);
+	    }, this);
+	    timer.start();
 	}, this);
 	timer.start();
     }
