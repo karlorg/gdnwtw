@@ -1,3 +1,5 @@
+A tiny game for the game jam Ludum Dare #38 with the theme "A Small World".
+
 Map tiles by Buch at OpenGameArt.org, http://blog-buch.rhcloud.com and Jeffrey Kern (committer and creative consultant).  Retrieved from https://opengameart.org/content/overworld-tiles-0
 
 Some sound effects based on those available online, including:
@@ -6,21 +8,7 @@ Some sound effects based on those available online, including:
 * https://www.freesound.org/people/ryanlouis/sounds/366958/ by ryanlouis
 * https://www.freesound.org/people/juskiddink/sounds/149488/ by juskiddink
 
-# Phaser + ES6 + Webpack.
-#### A bootstrap project to create games with Phaser + ES6 + Webpack.
-
-![Phaser+ES6+Webpack](https://raw.githubusercontent.com/lean/phaser-es6-webpack/master/assets/images/phaser-es6-webpack.jpg)
-
-[![js-standard-style](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
-
-
-## Features
-- ESLINT with JavaScript Standard Style configuration
-- Next generation of Javascript
-- Webpack ready
-- Multiple browser testing
-- WebFont Loader
-
+The game is made with [Phaser](https://github.com/photonstorm/phaser-ce) and this repository was based on the [Phaser/ES6/Webpack template](https://github.com/lean/phaser-es6-webpack) on Github.
 
 # Setup
 To use this bootstrap you’ll need to install a few things before you have a working copy of the project.
@@ -68,10 +56,3 @@ Run:
 ```npm run deploy```
 
 This will optimize and minimize the compiled bundle.
-
-## Credits
-Big thanks to this great repos:
-
-https://github.com/belohlavek/phaser-es6-boilerplate
-
-https://github.com/cstuncsik/phaser-es6-demo
