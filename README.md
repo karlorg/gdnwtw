@@ -1,3 +1,11 @@
+Map tiles by Buch at OpenGameArt.org, http://blog-buch.rhcloud.com and Jeffrey Kern (committer and creative consultant).  Retrieved from https://opengameart.org/content/overworld-tiles-0
+
+Some sound effects based on those available online, including:
+
+* https://www.freesound.org/people/pushtobreak/sounds/16793/ by pushtobreak
+* https://www.freesound.org/people/ryanlouis/sounds/366958/ by ryanlouis
+* https://www.freesound.org/people/juskiddink/sounds/149488/ by juskiddink
+
 # Phaser + ES6 + Webpack.
 #### A bootstrap project to create games with Phaser + ES6 + Webpack.
 
