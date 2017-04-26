@@ -8,7 +8,7 @@ Some sound effects based on those available online, including:
 * https://www.freesound.org/people/ryanlouis/sounds/366958/ by ryanlouis
 * https://www.freesound.org/people/juskiddink/sounds/149488/ by juskiddink
 
-The game is made with [Phaser](https://github.com/photonstorm/phaser-ce) and this repository was based on the [Phaser/ES6/Webpack template](https://github.com/lean/phaser-es6-webpack) on Github.
+The game is made with [Phaser](https://github.com/photonstorm/phaser-ce) and this repository was based on the [Phaser/ES6/Webpack template](https://github.com/lean/phaser-es6-webpack) on Github.  The map was made with the [Tiled map editor](http://www.mapeditor.org/).
 
 # Setup
 To use this bootstrap you’ll need to install a few things before you have a working copy of the project.
